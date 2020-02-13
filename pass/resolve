@@ -1,0 +1,554 @@
+#method {
+
+    resolve {
+
+        range_boundary [ [ #single boundary ] [ #single position ] [ #single length ]
+
+            @ negative index; make sure that there is an infered length
+            #if             [ #data #smaller ] [ #scope:boundary ] [ #data 0 ]
+            #if             [ #data #equals ] [ #scope:length ] [ #data none ]
+            #print_line     [ #root:color:red ] [ #data "\nindex can not be infered" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #data "" ]
+            #error          [ #data "indices can only be infered for collections of a set size" ]
+            #end            [ #data #always ]
+
+            @ make sure the negative index is inside the range and calculate the actual index
+            #absolute       [ #scope:boundary ]
+            #if             [ #data #bigger ] [ #last ] [ #scope:length ]
+            #print_line     [ #root:color:red ] [ #data "\nindex out of bounds; length is " ] [ #scope:length ] [ #data ", found " ] [ #scope:boundary ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #data "" ]
+            #error          [ #data "indices may not exeed the length of the collection" ]
+            #end            [ #data #always ]
+            #add            [ #scope:length ] [ #scope:boundary ] [ #data 1 ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+
+            @ positive index; make sure it is inside the range
+            #add            [ #scope:boundary ] [ #data 1 ]
+            #if             [ #data #integer ] [ #scope:length ]
+            #if             [ #data #bigger ] [ #last ] [ #scope:length ]
+            #print_line     [ #root:color:red ] [ #data "\nindex out of bounds; length is " ] [ #scope:length ] [ #data ", found " ] [ #scope:boundary ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #data "" ]
+            #error          [ #data "indices may not exeed the length of the collection" ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+            #return         [ #last ]
+        ]
+
+        wrapped_range [ [ #single range ] [ #single length ] @ pass this the position to error at if its not a map
+
+            @ MAKE SURE RANGE IS A MAP
+
+            @ resolve from and to
+            #call           [ #method:resolve:range_boundary ] [ #scope:range:from ] [ #scope:range:#position:from ] [ #scope:length ]
+            #set            [ #data from ] [ #last ]
+            #call           [ #method:resolve:range_boundary ] [ #scope:range:to ] [ #scope:range:#position:to ] [ #scope:length ]
+            #set            [ #data to ] [ #last ]
+
+            @ INCLUDE +: AND -: OPERATORS
+
+            @ calculate width and make sure it is bigger than 0
+            #subtract       [ #scope:from ] [ #scope:to ]
+            #absolute       [ #last ]
+            #add            [ #last ] [ #data 1 ]
+            #if             [ #data #not_bigger ] [ #last ] [ #data 1 ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid range with width of " ] [ #last ] [ #root:color:none ]
+            #range          [ #scope:range:#position:from ] [ #scope:range:#position:to ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last ]
+            #print_line     [ #data "" ]
+            #error          [ #data "ranges may only have a width of 2 or bigger" ]
+            #end            [ #data #always ]
+            #set            [ #data width ] [ #last ]
+
+            @ check if the range is positive and create the range map
+            #boolean        [ #data #bigger ] [ #scope:from ] [ #scope:to ]
+            #map            [ #data from ] [ #scope:from ] [ #data to ] [ #scope:to ] [ #data width ] [ #scope:width ] [ #data positive ] [ #last ]
+            #return         [ #last ]
+        ]
+
+        resolve_wires [ [ #single entry ] [ #single lookup ] [ #single length ]
+
+            @ wires inside of brackets
+            #if             [ #data #present ] [ #scope:entry ] [ #data gated ]
+            #call           [ #method:resolve:resolve_gated ] [ #scope:entry:gated ] [ #scope:lookup ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+
+            @ if its just an identifier, fetch the wires from the lookup table
+            #if             [ #data #present ] [ #scope:entry ] [ #data identifier ]
+            #ensure         [ #data #present ] [ #scope:lookup ] [ #scope:entry:identifier ] [ #data "missing field "] [ #scope:entry:identifier ]
+            #index          [ #scope:lookup ] [ #scope:entry:identifier ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+
+            @ if its a field, resolve the parent component and ensure it is a component
+            #if             [ #data #present ] [ #scope:entry ] [ #data field ]
+            #call           [ #method:resolve:resolve_wires ] [ #scope:entry:wires ] [ #scope:lookup ] [ #data none ]
+            #ensure         [ #data #map ] [ #last ] [ #data "only components can have fields" ]
+            #ensure         [ #data #present ] [ #last ] [ #scope:entry:field ] [ #data "unknown field "] [ #scope:entry:field ]
+            #index          [ #last ] [ #scope:entry:field ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+
+            @ <inverted>
+            #if             [ #data #present ] [ #scope:entry ] [ #data inverted ]
+                #call           [ #method:resolve:resolve_wires ] [ #scope:entry:inverted ] [ #scope:lookup ] [ #scope:length ]
+                #set            [ #data input ] [ #last ]
+
+                @ single wire
+                #if             [ #data #integer ] [ #scope:input ]
+                    #list       [ #data not ] [ #scope:input ]
+                    #insert         [ #root:gates ] [ #data -1 ] [ #last ]
+                    #modify         [ #data #root:gates ] [ #last ]
+                    #length         [ #root:gates ]
+                    #list           [ #data gate ] [ #last ]
+                    #insert         [ #root:wires ] [ #data -1 ] [ #last ]
+                    #modify         [ #data #root:wires ] [ #last ]
+                    #length         [ #root:wires ]
+                    #return         [ #last ]
+
+                @ wire collection
+                #else           [ #data #always ]
+                    #set            [ #data collected ] [ #data [] ]
+                    #iterate        [ #scope:input ]
+                        #set            [ #data iterator ] [ #last:instance ]
+                        #list           [ #data not ] [ #scope:iterator ]
+                        #insert         [ #root:gates ] [ #data -1 ] [ #last ]
+                        #modify         [ #data #root:gates ] [ #last ]
+                        #length         [ #root:gates ]
+                        #list           [ #data gate ] [ #last ]
+                        #insert         [ #root:wires ] [ #data -1 ] [ #last ]
+                        #modify         [ #data #root:wires ] [ #last ]
+                        #length         [ #root:wires ]
+                        #insert         [ #scope:collected ] [ #data -1 ] [ #last ]
+                        #set            [ #data collected ] [ #last ]
+                    #end            [ #data #always ]
+                    #return         [ #scope:collected ]
+                #end            [ #data #always ]
+            #end            [ #data #always ]
+
+            @ pass original set of wires and ensure it is a set
+            #call           [ #method:resolve:resolve_wires ] [ #scope:entry:wires ] [ #scope:lookup ] [ #scope:length ]
+            #set            [ #data list ] [ #last ]
+            #ensure         [ #data #list ] [ #scope:list ] [ #data "only collections of wires may be indexed" ]
+            #length         [ #scope:list ]
+
+            @ single index
+            #if             [ #data #integer ] [ #scope:entry:range ]
+            #call           [ #method:resolve:range_boundary ] [ #scope:entry:range ] [ #scope:entry:#position:range ] [ #last ]
+            #index          [ #scope:list ] [ #last ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+
+            @ positive range
+            #call           [ #method:resolve:wrapped_range ] [ #scope:entry:range ] [ #last ]
+            #if             [ #data #true ] [ #last:positive ]
+            #slice          [ #scope:list ] [ #last:to ] [ #last:from ]
+            #return         [ #last ]
+
+            @ negative range
+            #else           [ #data #always ]
+            #slice          [ #scope:list ] [ #last:from ] [ #last:to ]
+            #flip           [ #last ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+        ]
+
+        resolve_gated [ [ #single entry ] [ #single lookup ]
+
+            @ if its a list of logic gates, collect the wires and operators into a single list
+            #if             [ #data #bigger ] [ #scope:entry:wires ] [ #data 1 ]
+            #set            [ #data combined ] [ #data [] ]
+            #iterate        [ #scope:entry:wires ]
+            #set            [ #data iterator ] [ #last ]
+            #call           [ #method:resolve:resolve_wires ] [ #scope:iterator:instance:part ] [ #scope:lookup ] [ #data none ]
+            #list           [ #last ] [ #scope:iterator:instance:position:part ]
+            #insert         [ #scope:combined ] [ #data -1 ] [ #last ]
+            #set            [ #data combined ] [ #last ]
+            #if             [ #data #present ] [ #scope:iterator:instance ] [ #data seperator ]
+            #insert         [ #scope:combined ] [ #data -1 ] [ #scope:iterator:instance:seperator:operator ]
+            #set            [ #data combined ] [ #last ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+
+            @ put the operators and wires into individual lists so they reolve in the correct order
+            #call           [ #method:register:pull ] [ #last ] [ #data [ and ] ] @ MVOE OUT OF REGISTER?
+            #call           [ #method:register:pull ] [ #last ] [ #data [ xor ] ] @ MVOE OUT OF REGISTER?
+            #call           [ #method:register:pull ] [ #last ] [ #data [ or ] ] @ MVOE OUT OF REGISTER?
+
+            @ instance the logic gates
+            #call           [ #method:resolve:instanciate_gates ] [ #last ]
+            #return         [ #last:1 ]
+
+            @
+            #else           [ #data #always ]
+            #call           [ #method:resolve:resolve_wires ] [ #scope:entry:wires:1:part ] [ #scope:lookup ] [ #data none ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+        ]
+
+        instanciate_gates [ [ #single source ]
+
+            @ if source is a number, return it right away. otherwise ensure its a list
+            #if             [ #data #map ] [ #scope:source:1 ]
+            #error          [ #data "components may not be used for gated operations" ]
+            #else           [ #data #number ] [ #scope:source:1 ]
+            #return         [ #scope:source ]
+            #else           [ #data #not_identifier ] [ #scope:source:2 ]
+            #return         [ #scope:source ]
+            #end            [ #data #always ]
+
+            @ get the final left and right values
+            #call           [ #method:resolve:instanciate_gates ] [ #scope:source:1 ]
+            #set            [ #data left ] [ #last ]
+            #call           [ #method:resolve:instanciate_gates ] [ #scope:source:3 ]
+            #set            [ #data right ] [ #last ]
+
+            #range          [ #scope:left:2 ] [ #scope:right:2 ]
+            #set            [ #data range ] [ #last ]
+
+            @ single wire input
+            #if             [ #data #integer ] [ #scope:left:1 ]
+                @ ENSURE RIGHT IS ALSO AN INTEGER
+                #list           [ #scope:source:2 ] [ #scope:left:1 ] [ #scope:right:1 ]
+                #insert         [ #root:gates ] [ #data -1 ] [ #last ]
+                #modify         [ #data #root:gates ] [ #last ]
+                #length         [ #root:gates ]
+                #list           [ #data gate ] [ #last ]
+                #insert         [ #root:wires ] [ #data -1 ] [ #last ]
+                #modify         [ #data #root:wires ] [ #last ]
+                #length         [ #root:wires ]
+                #list           [ #last ] [ #scope:range ]
+                #return         [ #last ]
+
+            @ wire range input
+            #else           [ #data #always ]
+                @ ENSURE RIGHT IS ALSO A SEQUENCE WITH THE SAME WIDTH
+                #set            [ #data collected ] [ #data [] ]
+                #iterate        [ #scope:left:1 ]
+                    #set            [ #data iterator ] [ #last ]
+                    #index          [ #scope:right:1 ] [ #scope:iterator:selector ]
+                    #list           [ #scope:source:2 ] [ #scope:iterator:instance ] [ #last ]
+                    #insert         [ #root:gates ] [ #data -1 ] [ #last ]
+                    #modify         [ #data #root:gates ] [ #last ]
+                    #length         [ #root:gates ]
+                    #list           [ #data gate ] [ #last ]
+                    #insert         [ #root:wires ] [ #data -1 ] [ #last ]
+                    #modify         [ #data #root:wires ] [ #last ]
+                    #length         [ #root:wires ]
+                    #insert         [ #scope:collected ] [ #data -1 ] [ #last ]
+                    #set            [ #data collected ] [ #last ]
+                #end            [ #data #always ]
+                #list           [ #scope:collected ] [ #scope:range ]
+                #return         [ #last ]
+            #end            [ #data #always ]
+        ]
+
+        instanciate_component [ [ #single name ] [ #single inputs ] [ #single blocks ]
+
+            @ fetch the specified component
+            #ensure         [ #data #present ] [ #root:components ] [ #scope:name ] [ #data "missing component " ] [ #scope:name ]
+            #index          [ #root:components ] [ #scope:name ]
+            #index          [ #scope:blocks ] [ #last:1 ]
+            #set            [ #data entry ] [ #last:part:data ]
+
+            @ create lookup table
+            #set            [ #data lookup ] [ #data {} ]
+            @<insert inputs to the table>
+
+            @ process statements
+            #if             [ #data #present ] [ #scope:entry ] [ #data statements ]
+            #iterate        [ #scope:entry:statements ]
+
+            @ instanciate resource statement
+            #if             [ #data #present ] [ #last:instance:part ] [ #data resource ]
+            #call           [ #method:resolve:instanciate_resource ] [ #last:instance:part:resource ] [ #scope:lookup ]
+            #set            [ #data lookup ] [ #last ]
+
+            @ instanciate component statement
+            #else           [ #data #present ] [ #last:instance:part ] [ #data component ]
+            #set            [ #data component ] [ #last:instance:part:component ]
+
+            @ resolve and collect parameters
+            #set            [ #data parameters ] [ #data [] ]
+            #iterate        [ #scope:component:parameters ]
+            #call           [ #method:resolve:resolve_gated ] [ #last:instance:part ] [ #scope:lookup ]
+            #insert         [ #scope:parameters ] [ #data -1 ] [ #last ]
+            #set            [ #data parameters ] [ #last ]
+            #end            [ #data #always ]
+
+            @ call instanciate with the resolved parameters and add the component to the lookup table if needed
+            #call           [ #method:resolve:instanciate_component ] [ #scope:component:type ] [ #scope:parameters ] [ #scope:blocks ]
+            #if             [ #data #present ] [ #scope:component ] [ #data name ]
+            #ensure         [ #data #not_present ] [ #scope:lookup ] [ #scope:component:name ] [ #data "field " ] [ #scope:component:name ] [ #data " may only be defined once" ]
+            #insert         [ #scope:lookup ] [ #scope:component:name ] [ #last ]
+            #set            [ #data lookup ] [ #last ]
+            #end            [ #data #always ]
+
+            @ assign statement
+            #else           [ #data #always ]
+            #set            [ #data assign ] [ #last:instance:part:assign ]
+            #call           [ #method:resolve:resolve_wires ] [ #scope:assign:wires ] [ #scope:lookup ] [ #data none ]
+            #set            [ #data wires ] [ #last ]
+            #if             [ #data #present ] [ #scope:assign ] [ #data drivers ]
+            #call           [ #method:resolve:resolve_gated ] [ #scope:assign:drivers ] [ #scope:lookup ]
+            #call           [ #method:resolve:assign_wires ] [ #scope:wires ] [ #last ]
+            #else           [ #data #always ]
+            #call           [ #method:resolve:assign_registers ] [ #scope:wires ] [ #scope:assign:constant ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+            #return         [ #scope:lookup ]
+        ]
+
+        instanciate_wires [ [ #single ranges ]
+
+            @ no range, return single wire
+            #if             [ #data #empty ] [ #scope:ranges ]
+            #insert         [ #root:wires ] [ #data -1 ] [ #data [ none ] ]
+            #modify         [ #data #root:wires ] [ #last ]
+            #length         [ #root:wires ]
+            #return         [ #last ]
+
+            @ range,
+            #else           [ #data #always ]
+                #index          [ #scope:ranges ] [ #data -1 ]
+                #call           [ #method:resolve:wrapped_range ] [ #last:part:range ] [ #data none ]
+                #set            [ #data current ] [ #last ]
+                #remove         [ #scope:ranges ] [ #data -1 ]
+                #set            [ #data ranges ] [ #last ]
+                #set            [ #data bundle ] [ #data [] ]
+
+                #if             [ #data #true ] [ #scope:current:positive ]
+                    #ensure         [ #data #equals ] [ #scope:current:to ] [ #data 1 ] [ #data "wire range may only start at zero" ]
+                    #for            [ #data 1 ] [ #scope:current:from ]
+                        #call           [ #method:resolve:instanciate_wires ] [ #scope:ranges ]
+                        #insert         [ #scope:bundle ] [ #data -1 ] [ #last ]
+                        #set            [ #data bundle ] [ #last ]
+                    #end            [ #data #always ]
+                #else           [ #data #always ]
+                    #ensure         [ #data #equals ] [ #scope:current:from ] [ #data 1 ] [ #data "wire range may only start at zero" ]
+                    #for            [ #data 1 ] [ #scope:current:to ]
+                        #call           [ #method:resolve:instanciate_wires ] [ #scope:ranges ]
+                        #insert         [ #scope:bundle ] [ #data 1 ] [ #last ]
+                        #set            [ #data bundle ] [ #last ]
+                    #end            [ #data #always ]
+                #end            [ #data #always ]
+                #return         [ #scope:bundle ]
+            #end            [ #data #always ]
+        ]
+
+        instanciate_registers [ [ #single ranges ]
+
+            @ no range, return single wire
+            #if             [ #data #empty ] [ #scope:ranges ]
+            #insert         [ #root:registers ] [ #data -1 ] [ #data [ none ] ]
+            #modify         [ #data #root:registers ] [ #last ]
+            #length         [ #root:registers ]
+            #list           [ #data register ] [ #last ]
+            #insert         [ #root:wires ] [ #data -1 ] [ #last ]
+            #modify         [ #data #root:wires ] [ #last ]
+            #length         [ #root:wires ]
+            #return         [ #last ]
+
+            @ range,
+            #else           [ #data #always ]
+                #index          [ #scope:ranges ] [ #data -1 ]
+                #call           [ #method:resolve:wrapped_range ] [ #last:part:range ] [ #data none ]
+                #set            [ #data current ] [ #last ]
+                #remove         [ #scope:ranges ] [ #data -1 ]
+                #set            [ #data ranges ] [ #last ]
+                #set            [ #data bundle ] [ #data [] ]
+
+                #if             [ #data #true ] [ #scope:current:positive ]
+                    #ensure         [ #data #equals ] [ #scope:current:to ] [ #data 1 ] [ #data "register range may only start at zero" ]
+                    #for            [ #data 1 ] [ #scope:current:from ]
+                        #call           [ #method:resolve:instanciate_registers ] [ #scope:ranges ]
+                        #insert         [ #scope:bundle ] [ #data -1 ] [ #last ]
+                        #set            [ #data bundle ] [ #last ]
+                    #end            [ #data #always ]
+                #else           [ #data #always ]
+                    #ensure         [ #data #equals ] [ #scope:current:from ] [ #data 1 ] [ #data "register range may only start at zero" ]
+                    #for            [ #data 1 ] [ #scope:current:to ]
+                        #call           [ #method:resolve:instanciate_registers ] [ #scope:ranges ]
+                        #insert         [ #scope:bundle ] [ #data 1 ] [ #last ]
+                        #set            [ #data bundle ] [ #last ]
+                    #end            [ #data #always ]
+                #end            [ #data #always ]
+                #return         [ #scope:bundle ]
+            #end            [ #data #always ]
+        ]
+
+        assign_wires [ [ #single wires ] [ #single drivers ]
+
+            @ make sure that both sides are wires
+            #ensure         [ #data #not_map ] [ #scope:wires ] [ #data "components may not be mapped" ]
+            #ensure         [ #data #not_map ] [ #scope:drivers ] [ #data "components may not be mapped" ]
+
+            @ single wire
+            #if             [ #data #integer ] [ #scope:wires ]
+            #ensure         [ #data #integer ] [ #scope:drivers ] [ #data "single wire may not be mapped to a range of wires" ]
+            #ensure         [ #data #not_equals ] [ #scope:wires ] [ #scope:drivers ] [ #data "wire may not drive iteself" ]
+            #index          [ #root:wires ] [ #scope:wires ]
+            #ensure         [ #data #equals ] [ #last:1 ] [ #data none ] [ #data "wire may only have one driver" ]
+            #list           [ #data wire ] [ #scope:drivers ]
+            #overwrite      [ #root:wires ] [ #scope:wires ] [ #last ]
+            #modify         [ #data #root:wires ] [ #last ]
+
+            @ set of wires
+            #else           [ #data #always ]
+            #ensure         [ #data #list ] [ #scope:drivers ] [ #data "range of wires may not be mapped to a single wire" ]
+            #length         [ #scope:wires ]
+            #set            [ #data width ] [ #last ]
+            #length         [ #scope:drivers ]
+            #ensure         [ #data #equals ] [ #scope:width ] [ #last ] [ #data "ranges of wires may not have differnt widths" ]
+            #iterate        [ #scope:wires ]
+            #set            [ #data iterator ] [ #last ]
+            #index          [ #scope:drivers ] [ #scope:iterator:selector ]
+            #call           [ #method:resolve:assign_wires ] [ #scope:iterator:instance ] [ #last ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+        ]
+
+        follow_register [ [ #single wire ]
+            #index          [ #root:wires ] [ #scope:wire ]
+            #if             [ #data #equals ] [ #last:1 ] [ #data register ]
+            #return         [ #last:2 ]
+            #else           [ #data #equals ] [ #last:1 ] [ #data wire ]
+            #call           [ #method:resolve:follow_register ] [ #last:2 ]
+            #return         [ #last ]
+            #else           [ #data #always ]
+            #error          [ #data "wire is not connected to a register" ]
+            #end            [ #data #always ]
+        ]
+
+        assign_registers [ [ #single wires ] [ #single constant ]
+
+            @ follow single wire
+            #ensure         [ #data #not_map ] [ #scope:wires ] [ #data "constants may not be assigned to components" ]
+            #if             [ #data #integer ] [ #scope:wires ]
+            #call           [ #method:resolve:follow_register ] [ #scope:wires ]
+            #list           [ #last ]
+            #set            [ #data registers ] [ #last ]
+
+            @ follow set of wires
+            #else           [ #data #always ]
+            #set            [ #data registers ] [ #data [] ]
+            #iterate        [ #scope:wires ]
+            #call           [ #method:resolve:follow_register ] [ #last:instance ]
+            #insert         [ #scope:registers ] [ #data 1 ] [ #last ]
+            #set            [ #data registers ] [ #last ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+
+            @ if #list of 2 integers, constant and width
+            @ #else
+            #ensure         [ #data #number ] [ #scope:constant ] [ #data "constant may only be a number" ]
+            @ #end
+
+            @ iterate registers and set the new entries
+            #iterate        [ #scope:registers ]
+            #set            [ #data iterator ] [ #last ]
+
+            @ make sure register does not already have a value
+            #index          [ #root:registers ] [ #scope:iterator:instance ]
+            #ensure         [ #data #equals ] [ #last:1 ] [ #data none ] [ #data "register may only have one initial value" ]
+
+            @ get high or low from the current bit
+            #subtract       [ #scope:iterator:selector ] [ #data 1 ]
+            #shift_left     [ #data 1 ] [ #last ]
+            #and            [ #scope:constant ] [ #last ]
+            #if             [ #data #zero ] [ #last ]
+            #list           [ #data low ]
+            #else           [ #data #always ]
+            #list           [ #data high ]
+            #end            [ #data #always ]
+
+            @ modify the entry
+            #overwrite      [ #root:registers ] [ #scope:iterator:instance ] [ #last ]
+            #modify         [ #data #root:registers ] [ #last ]
+            #end            [ #data #always ]
+
+            @ make sure the constant doesnt overflow the wires
+            #length         [ #scope:registers ]
+            #shift_right    [ #scope:constant ] [ #last ]
+            #ensure         [ #data #zero ] [ #last ] [ #data "constant is overflowing the registers" ]
+        ]
+
+        instanciate_resource [ [ #single statement ] [ #single lookup ]
+
+            @ wires
+            #if             [ #data #equals ] [ #scope:statement:type ] [ #data Wire ]
+            #ensure         [ #data #not_present ] [ #scope:statement ] [ #data constant ] [ #data "constants may only be assigned to registers" ]
+            #pass           [ #scope:statement:ranges ]
+            #call           [ #method:resolve:instanciate_wires ] [ #last ]
+            #set            [ #data wires ] [ #last ]
+
+            @ registers
+            #else           [ #data #equals ] [ #scope:statement:type ] [ #data Register ]
+            #ensure         [ #data #not_present ] [ #scope:statement ] [ #data wires ] [ #data "wires may only be mapped to other wires" ]
+            #pass           [ #scope:statement:ranges ]
+            #call           [ #method:resolve:instanciate_registers ] [ #last ]
+            #set            [ #data wires ] [ #last ]
+
+            @ custom types
+            #else           [ #data #always ]
+            #ensure         [ #data #not_present ] [ #scope:statement ] [ #data constant ] [ #data "constants may only be assigned to registers" ]
+            #ensure         [ #data #present ] [ #root:types ] [ #scope:statement:type ] [ #data "missing type " ] [ #scope:statement:type ]
+            #index          [ #root:types ] [ #scope:statement:type ]
+
+            @ single wire type
+            #if             [ #data #equals ] [ #last:width ] [ #data 1 ]
+            #call           [ #method:resolve:instanciate_wires ] [ #scope:statement:ranges ]
+
+            @ collection wire type
+            #else           [ #data #always ]
+            #set            [ #data width ] [ #last:width ]
+            #set            [ #data bundle ] [ #data [] ]
+            #for            [ #data 1 ] [ #scope:width ]
+            #call           [ #method:resolve:instanciate_wires ] [ #scope:statement:ranges ]
+            #insert         [ #scope:bundle ] [ #data -1 ] [ #last ]
+            #set            [ #data bundle ] [ #last ]
+            #end            [ #data #always ]
+            #remember       [ #scope:bundle ]
+            #end            [ #data #always ]
+            #set            [ #data wires ] [ #last ]
+            #end            [ #data #always ]
+
+            @ add field to the lookup table
+            #ensure         [ #data #not_present ] [ #scope:lookup ] [ #scope:statement:name ] [ #data "field " ] [ #scope:statement:name ] [ #data " may only be defined once" ]
+            #insert         [ #scope:lookup ] [ #scope:statement:name ] [ #scope:wires ]
+            #set            [ #data lookup ] [ #last ]
+
+            @ assign wires if possible
+            #if             [ #data #present ] [ #scope:statement ] [ #data gated ]
+            #call           [ #method:resolve:resolve_gated ] [ #scope:statement:gated ] [ #scope:lookup ]
+            #call           [ #method:resolve:assign_wires ] [ #scope:wires ] [ #last ]
+
+            @ assign constant if possible
+            #else           [ #data #present ] [ #scope:statement ] [ #data constant ]
+            #call           [ #method:resolve:assign_registers ] [ #scope:wires ] [ #scope:statement:constant ]
+            #end            [ #data #always ]
+            #return         [ #scope:lookup ]
+        ]
+
+        top [ [ #single self ]
+
+            @ create lookup tables
+            #insert         [ #root ] [ #data wires ] [ #data [] ]
+            #insert         [ #last ] [ #data gates ] [ #data [] ]
+            #insert         [ #last ] [ #data registers ] [ #data [] ]
+            #modify         [ #data #root ] [ #last ]
+
+            @ instanciate wires, gates and registers
+            #if             [ #data #present ] [ #scope:self ] [ #data blocks ]
+            #call           [ #method:resolve:instanciate_component ] [ #data Top ] [ #data [ 11 [ [ 1 2 3 4 ] [ 5 6 7 8 ] ] 12 ] ] [ #scope:self:blocks ]
+            #end            [ #data #always ]
+            #return         [ #scope:self ]
+        ]
+    }
+}

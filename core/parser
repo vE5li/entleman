@@ -1,0 +1,166 @@
+#template {
+
+    type [ { register [ register:type ] }
+        [ [ #keyword [ type ] ] [ #type_identifier name ] [ #operator [ open_round ] ] [ #template width [ constant ] ] [ #operator [ comma ] ] [ #template export [ constant ] ] [ #operator [ close_round ] ] ]
+        [ [ #keyword [ type ] ] [ #type_identifier name ] [ #operator [ open_round ] ] [ #template width [ constant ] ]                                                           [ #operator [ close_round ] ] ]
+    ]
+
+    range_constant [ { register [ register:range_constant ] }
+        [ [ #template from   [ constant ] ] [ #operator [ type               ] ]                                     [ #template to     [ constant ] ] ]
+        [ [ #template from   [ constant ] ] [ #operator [ right_offset_plus  ] ] [ #data     positive !false       ] [ #template offset [ constant ] ] ]
+        [ [ #template from   [ constant ] ] [ #operator [ right_offset_minus ] ] [ #data     positive !true        ] [ #template offset [ constant ] ] ]
+        [ [ #template offset [ constant ] ] [ #operator [ left_offset_plus   ] ] [ #data     positive !false       ] [ #template to     [ constant ] ] ]
+        [ [ #template offset [ constant ] ] [ #operator [ left_offset_minus  ] ] [ #data     positive !true        ] [ #template to     [ constant ] ] ]
+    ]
+
+    range [
+        [ [ #operator [ open_square ] ] [ #template range [ constant ] ] [ #operator [ close_square ] ] ]
+    ]
+
+    operator [
+        [ [ #operator operator [ add         ] ] ]
+        [ [ #operator operator [ subtract    ] ] ]
+        [ [ #operator operator [ multiply    ] ] ]
+        [ [ #operator operator [ divide      ] ] ]
+        [ [ #operator operator [ modulo      ] ] ]
+        [ [ #operator operator [ and         ] ] ]
+        [ [ #operator operator [ xor         ] ] ]
+        [ [ #operator operator [ or          ] ] ]
+        [ [ #operator operator [ shift_left  ] ] ]
+        [ [ #operator operator [ shift_right ] ] ]
+    ]
+
+    logical_operator [
+        [ [ #operator operator [ logical_and    ] ] ]
+        [ [ #operator operator [ logical_xor    ] ] ]
+        [ [ #operator operator [ logical_or     ] ] ]
+        [ [ #operator operator [ equals         ] ] ]
+        [ [ #operator operator [ not_equals     ] ] ]
+        [ [ #operator operator [ not_smaller    ] ] ]
+        [ [ #operator operator [ not_bigger     ] ] ]
+        [ [ #operator operator [ bigger         ] ] ]
+        [ [ #operator operator [ smaller        ] ] ]
+    ]
+
+    gate_operator [
+        [ [ #operator operator [ and ] ] ]
+        [ [ #operator operator [ xor ] ] ]
+        [ [ #operator operator [ or  ] ] ]
+    ]
+
+    constant [ { register [ register:constant ] }
+        [                              [ #integer    integer                         ]                               ]
+        [                              [ #string     string                          ]                               ]
+        [                              [ #float      float                           ]                               ]
+        [                              [ #character  character                       ]                               ]
+        [ [ #keyword  [ true       ] ] [ #data       boolean    !true                ]                               ]
+        [ [ #keyword  [ false      ] ] [ #data       boolean    !false               ]                               ]
+        [                              [ #template   passed     [ range_constant   ] ]                               ]
+        [                              [ #template   passed     [ directive        ] ]                               ]
+        [                              [ #template   passed     [ concatinate      ] ]                               ]
+        [                              [ #template   passed     [ equasion         ] ]                               ]
+        [                              [ #template   passed     [ condition        ] ]                               ]
+        [                              [ #template   passed     [ logical_equasion ] ]                               ]
+        [ [ #operator [ subtract   ] ] [ #template   negative   [ constant         ] ]                               ]
+        [ [ #operator [ invert     ] ] [ #template   inverted   [ constant         ] ]                               ]
+        [ [ #operator [ open_round ] ] [ #template   passed     [ constant         ] ] [ #operator [ close_round ] ] ]
+        [ [ #operator [ directive  ] ] [ #identifier macro                           ] [ #merge    [ parameters  ] ] ]
+    ]
+
+    directive [ { register [ register:directive ] }
+        [ [ #operator [ directive ] ] [ #identifier directive ] ]
+    ]
+
+    parameters [
+        [ [ #operator [ open_round ] ] [ #list parameters [ #template [ constant ] ] [ #operator [ comma ] ] ] [ #operator [ close_round ] ] ]
+    ]
+
+    equasion [ { register [ register:equasion ] }
+        [ [ #confirmed pieces [ #template [ constant ] ] [ #template [ operator ] ] ] ]
+    ]
+
+    logical_equasion [ { register [ register:logical_equasion ] }
+        [ [ #confirmed pieces [ #template [ constant ] ] [ #template [ logical_operator ] ] ] ]
+    ]
+
+    concatinate [ { register [ register:concatinate ] }
+        [ [ #confirmed concatinate [ #template [ constant ] ] [ #operator [ concatinate ] ] ] ]
+    ]
+
+    condition [ { register [ register:condition ] }
+        [ [ #template condition [ constant ] ] [ #operator [ condition ] ] [ #template true [ constant ] ] [ #operator [ type ] ] [ #template false [ constant ] ] ]
+    ]
+
+    wires [
+        [ [ #identifier identifier                ]                                                                      ]
+        [ [ #operator              [ open_round ] ] [ #template gated    [ gated_wires ] ] [ #operator [ close_round ] ] ]
+        [ [ #operator              [ invert     ] ] [ #template inverted [ wires       ] ]                               ]
+        [ [ #template   wires      [ wires      ] ] [ #merge             [ range       ] ]                               ]
+        [ [ #template   wires      [ wires      ] ] [ #operator          [ dot         ] ] [ #identifier field         ] ]
+    ]
+
+    gated_wires [
+        [ [ #list wires [ #template [ wires ] ] [ #template [ gate_operator ] ] ] ]
+    ]
+
+    internal_resource [
+        [ [ #type_identifier type ] [ #identifier name ] [ #list ranges [ #template [ range ] ] ] [ #operator [ assign ] ] [ #template constant [ constant    ] ] ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges []                      ] [ #operator [ assign ] ] [ #template constant [ constant    ] ] ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #list ranges [ #template [ range ] ] ] [ #operator [ assign ] ] [ #template gated    [ gated_wires ] ] ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges []                      ] [ #operator [ assign ] ] [ #template gated    [ gated_wires ] ] ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #list ranges [ #template [ range ] ] ]                                                                 ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges []                      ]                                                                 ]
+    ]
+
+    internal_component [
+        [ [ #type_identifier type ] [ #identifier name ] [ #operator [ open_round ] ] [ #list parameters [ #template [ gated_wires ] ] [ #operator [ comma ] ] ] [ #operator [ close_round ] ] ]
+        [ [ #type_identifier type ]                      [ #operator [ open_round ] ] [ #list parameters [ #template [ gated_wires ] ] [ #operator [ comma ] ] ] [ #operator [ close_round ] ] ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #operator [ open_round ] ] [ #data parameters []                                                    ] [ #operator [ close_round ] ] ]
+        [ [ #type_identifier type ]                      [ #operator [ open_round ] ] [ #data parameters []                                                    ] [ #operator [ close_round ] ] ]
+    ]
+
+    assign [
+        [ [ #template wires [ wires ] ] [ #operator [ assign ] ] [ #template drivers    [ gated_wires ] ] ]
+        [ [ #template wires [ wires ] ] [ #operator [ assign ] ] [ #template constant   [ constant ] ] ]
+    ]
+
+    statement [
+        [ [ #template resource  [ internal_resource  ] ] ]
+        [ [ #template component [ internal_component ] ] ]
+        [ [ #template assign    [ assign             ] ] ]
+    ]
+
+    parameter [
+        [ [ #keyword direction [ in out any ] ] [ #identifier name ] [ #operator        [ type                ] ] [ #type_identifier type ] ]
+        [ [ #keyword direction [ in out any ] ] [ #identifier name ] [ #list     ranges [ #template [ range ] ] ]                           ]
+        [ [ #keyword direction [ in out any ] ] [ #identifier name ]                                                                        ]
+    ]
+
+    parameter_list [
+        [ [ #operator [ open_round ] ] [ #list parameters [ #template [ parameter ] ] [ #operator [ comma ] ] ] [ #operator [ close_round ] ] ]
+        [ [ #operator [ open_round ] ]                                                                          [ #operator [ close_round ] ] ]
+    ]
+
+    component [ { register [ register:component ] }
+        [ [ #keyword type [ component ] ] [ #type_identifier name ] [ #merge [ parameter_list ] ] [ #operator [ open_curly ] ] [ #list statements [ #template [ statement ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword type [ component ] ] [ #type_identifier name ] [ #merge [ parameter_list ] ] [ #operator [ open_curly ] ]                                                  [ #operator [ close_curly ] ] ]
+        [ [ #keyword type [ component ] ] [ #type_identifier name ] [ #merge [ parameter_list ] ] [ #operator [ open_curly ] ] [ #list statements [ #template [ statement ] ] ] [ #operator [ close_curly ] ] ]
+        [ [ #keyword type [ component ] ] [ #type_identifier name ] [ #merge [ parameter_list ] ] [ #operator [ open_curly ] ]                                                  [ #operator [ close_curly ] ] ]
+    ]
+
+    define [ { register [ register:define ] }
+        [ [ #keyword [ constant ] ] [ #identifier name ] [ #operator [ assign ] ] [ #template constant [ constant       ] ] ]
+        [ [ #keyword [ constant ] ] [ #identifier name ] [ #operator [ assign ] ] [ #template constant [ range_constant ] ] ]
+    ]
+
+    block [
+        [ [ #template data [ component ] ] ]
+        [ [ #template data [ type      ] ] ]
+        [ [ #template data [ define    ] ] ]
+    ]
+
+    #top [ { register [ register:top ] resolve [ resolve:top ] }
+        [ [ #list blocks [ #template [ block ] ] ] ]
+        [                                          ]
+    ]
+}

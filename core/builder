@@ -1,0 +1,17 @@
+#method {
+
+    #note [ [ #single modules ] [ #single flag [ identifier ] ] [ #single message [ string ] ]
+        #call           [ #method:format:tag ] [ #root:color:yellow ] [ #scope:flag ]
+        #string         [ #last ] [ #data " " ] [ #scope:message ]
+        #return         [ #last ]
+    ]
+
+    type [ [ #single instance ]
+        #if             [ #data #map ] [ #scope:instance ]
+        #return         [ #data #range ]
+        #else           [ #data #always ]
+        #type           [ #scope:instance ]
+        #return         [ #last ]
+        #end            [ #data #always ]
+    ]
+}

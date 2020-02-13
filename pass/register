@@ -1,0 +1,532 @@
+#method {
+
+    register {
+
+        calculate_total [ [ #single source ]
+
+            @ if source is a number, return it right away. otherwise ensure its a list
+            #if             [ #data #number ] [ #scope:source:1 ]
+            #return         [ #scope:source ]
+            #else           [ #data #not_list ] [ #scope:source:1 ]
+            #call           [ #method:type ] [ #scope:source:1 ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected number or character; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:2 ]
+            #print_line     [ #data "" ]
+            #error          [ #data "equasions may only consist of numbers and characters" ]
+            #end            [ #data #always ]
+
+            @ get the final left and right values
+            #call           [ #method:register:calculate_total ] [ #scope:source:1 ]
+            #set            [ #data left ] [ #last ]
+            #call           [ #method:register:calculate_total ] [ #scope:source:3 ]
+            #set            [ #data right ] [ #last ]
+
+            @ invoke a math method set by the operator
+            #range          [ #scope:left:2 ] [ #scope:right:2 ]
+            #set            [ #data range ] [ #last ]
+            #list           [ #scope:left:1 ] [ #scope:right:1 ]
+            #set            [ #data parameters ] [ #last ]
+            #keyword        [ #scope:source:2 ]
+            #invoke         [ #last ] [ #scope:parameters ]
+            #list           [ #last ] [ #scope:range ]
+            #return         [ #last ]
+        ]
+
+        calculate_condition [ [ #single source ] [ #single forced ]
+
+            @ if source is not a list, return it right away
+            #if             [ #data #not_list ] [ #scope:source:1 ]
+            #pass           [ #scope:source:1 ]
+            #if             [ #data #true ] [ #scope:forced ]
+
+            @ ensure that source is a boolean
+            #if             [ #data #not_boolean ] [ #last ]
+            #call           [ #method:type ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected boolean; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:2 ]
+            #print_line     [ #data "" ]
+            #error          [ #data "logical operators may only operate on booleans" ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+
+            @ return passed source
+            #list           [ #last ] [ #scope:source:2 ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+
+            @ logical or
+            #if             [ #data #equals ] [ #scope:source:2 ] [ #data logical_or ]
+            #call           [ #method:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
+
+            @ if left is true, skip passing right and return true right away
+            #if             [ #data #true ] [ #last:1 ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+
+            @ otherwise pass right and or them together
+            #set            [ #data left ] [ #last ]
+            #call           [ #method:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
+            #set            [ #data right ] [ #last ]
+            #range          [ #scope:left:2 ] [ #scope:right:2 ]
+            #set            [ #data range ] [ #last ]
+            #or             [ #scope:left:1 ] [ #scope:right:1 ]
+            #list           [ #last ] [ #scope:range ]
+            #return         [ #last ]
+
+            @ logical and
+            #else           [ #data #equals ] [ #scope:source:2 ] [ #data logical_and ]
+            #call           [ #method:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
+
+            @ if left is false, skip passing right and return false right away
+            #if             [ #data #false ] [ #last:1 ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+
+            @ otherwise pass right and and them together
+            #set            [ #data left ] [ #last ]
+            #call           [ #method:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
+            #set            [ #data right ] [ #last ]
+            #range          [ #scope:left:2 ] [ #scope:right:2 ]
+            #set            [ #data range ] [ #last ]
+            #and            [ #scope:left:1 ] [ #scope:right:1 ]
+            #list           [ #last ] [ #scope:range ]
+            #return         [ #last ]
+
+            @ logical xor
+            #else           [ #data #equals ] [ #scope:source:2 ] [ #data logical_xor ]
+            #call           [ #method:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
+            #set            [ #data left ] [ #last ]
+            #call           [ #method:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
+            #set            [ #data right ] [ #last ]
+            #range          [ #scope:left:2 ] [ #scope:right:2 ]
+            #set            [ #data range ] [ #last ]
+            #xor            [ #scope:left:1 ] [ #scope:right:1 ]
+            #list           [ #last ] [ #scope:range ]
+            #return         [ #last ]
+
+            @ resolve left and make sure its not a range
+            #else           [ #data #always ]
+            #call           [ #method:register:calculate_condition ] [ #scope:source:1 ] [ #data !false ]
+            #if             [ #data #map ] [ #last:1 ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected constant; found range" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:1:2 ]
+            #print_line     [ #data "" ]
+            #error          [ #data "relational operators may not operate on ranges" ]
+            #end            [ #data #always ]
+            #set            [ #data left ] [ #last ]
+
+            @ resolve right and make sure its not a range
+            #call           [ #method:register:calculate_condition ] [ #scope:source:3 ] [ #data !false ]
+            #if             [ #data #map ] [ #last:1 ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected constant; found range" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:3:2 ]
+            #print_line     [ #data "" ]
+            #error          [ #data "relational operators may not operate on ranges" ]
+            #end            [ #data #always ]
+            #set            [ #data right ] [ #last ]
+
+            @ evaluate relation between left and right and return the result
+            #range          [ #scope:left:2 ] [ #scope:right:2 ]
+            #set            [ #data range ] [ #last ]
+            #keyword        [ #scope:source:2 ]
+            #boolean        [ #last ] [ #scope:left:1 ] [ #scope:right:1 ]
+            #list           [ #last ] [ #scope:range ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+        ]
+
+        pull [ [ #single source ] [ #single operators ]
+
+            @ iterate all items
+            #set            [ #data index ] [ #data 2 ]
+            #while          [ #data #smaller ] [ #scope:index ] [ #scope:source ]
+
+            @ if the source has a length of 3, pull is done
+            #length         [ #scope:source ]
+            #if             [ #data #equals ] [ #last ] [ #data 3 ]
+            #return         [ #scope:source ]
+            #end            [ #data #always ]
+
+            @ check if the current item is one of the provided operators
+            #index          [ #scope:source ] [ #scope:index ]
+            #if             [ #data #contains ] [ #scope:operators ] [ #last ]
+
+            @ get the value to the left of the operator and safe its index for inserting the new list
+            #subtract       [ #scope:index ] [ #data 1 ]
+            #set            [ #data replace ] [ #last ]
+            #index          [ #scope:source ] [ #last ]
+            #set            [ #data left ] [ #last ]
+
+            @ get the value to the right of the operator
+            #add            [ #scope:index ] [ #data 1 ]
+            #index          [ #scope:source ] [ #last ]
+            #set            [ #data right ] [ #last ]
+
+            @ insert the new list into source and remove the two following items
+            #index          [ #scope:source ] [ #scope:index ]
+            #list           [ #scope:left ] [ #last ] [ #scope:right ]
+            #overwrite      [ #scope:source ] [ #scope:replace ] [ #last ]
+            #remove         [ #last ] [ #scope:index ]
+            #remove         [ #last ] [ #scope:index ]
+            #set            [ #data source ] [ #last ]
+
+            @ if the operator is not found, check the next item
+            #else           [ #data #always ]
+            #add            [ #scope:index ] [ #data 1 ]
+            #set            [ #data index ] [ #last ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+            #return         [ #scope:source ]
+        ]
+
+        equasion [ [ #single self ]
+
+            @ put all values and operators into a single list
+            #set            [ #data combined ] [ #data [] ]
+            #iterate        [ #scope:self:pieces ]
+            #set            [ #data iterator ] [ #last ]
+            #pass           [ #scope:iterator:instance:part ]
+            #list           [ #last ] [ #scope:iterator:instance:position:part ]
+            #insert         [ #scope:combined ] [ #data -1 ] [ #last ]
+            #set            [ #data combined ] [ #last ]
+            #if             [ #data #present ] [ #scope:iterator:instance ] [ #data seperator ]
+            #insert         [ #scope:combined ] [ #data -1 ] [ #scope:iterator:instance:seperator:operator ]
+            #set            [ #data combined ] [ #last ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+
+            @ put the operators and values into individual lists so they reolve in the correct order
+            #call           [ #method:register:pull ] [ #scope:combined ] [ #data [ multiply divide remainder ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ add subtract ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ shift_left shift_right ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ and ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ xor ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ or ] ]
+
+            @ resolve the equasion
+            #call           [ #method:register:calculate_total ] [ #last ]
+            #return         [ #last:1 ]
+        ]
+
+        logical_equasion [ [ #single self ]
+
+            @ put all values and operators into a single list
+            #set            [ #data combined ] [ #data [] ]
+            #iterate        [ #scope:self:pieces ]
+            #set            [ #data iterator ] [ #last ]
+            #list           [ #scope:iterator:instance:part ] [ #scope:iterator:instance:position:part ]
+            #insert         [ #scope:combined ] [ #data -1 ] [ #last ]
+            #set            [ #data combined ] [ #last ]
+            #if             [ #data #present ] [ #scope:iterator:instance ] [ #data seperator ]
+            #insert         [ #scope:combined ] [ #data -1 ] [ #scope:iterator:instance:seperator:operator ]
+            #set            [ #data combined ] [ #last ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+
+            @ put the operators and values into individual lists so they reolve in the correct order
+            #call           [ #method:register:pull ] [ #scope:combined ] [ #data [ bigger smaller not_smaller not_bigger ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ equals not_equals ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ logical_and ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ logical_xor ] ]
+            #call           [ #method:register:pull ] [ #last ] [ #data [ logical_or ] ]
+
+            @ resolve the equasion
+            #call           [ #method:register:calculate_condition ] [ #last ] [ #data !false ]
+            #return         [ #last:1 ]
+        ]
+
+        condition [ [ #single self ]
+
+            @ pass the condition value and ensure its a boolean
+            #pass           [ #scope:self:condition ]
+            #set            [ #data condition ] [ #last ]
+            #if             [ #data #not_boolean ] [ #scope:condition ]
+            #call           [ #method:type ] [ #scope:condition ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected boolean; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:condition ]
+            #print_line     [ #data "" ]
+            #error          [ #data "only booleand may be used for conditionals" ]
+            #end            [ #data #always ]
+
+            @ if its true, pass the left value and return it
+            #if             [ #data #true ] [ #scope:condition ]
+            #pass           [ #scope:self:true ]
+            #return         [ #last ]
+
+            @ if its false, pass the right value and return it
+            #else           [ #data #always ]
+            #pass           [ #scope:self:false ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+        ]
+
+        directive [ [ #single self ]
+
+            @ make sure directive exists
+            #if             [ #data #not_present ] [ #root:directives ] [ #scope:self:directive ]
+            #print_line     [ #root:color:red ] [ #data "\ninvalid directive " ] [ #scope:self:directive ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:directive ]
+            #print_line     [ #data "" ]
+            #error          [ #data "directive must be defined prior to using it" ]
+            #end            [ #data #always ]
+
+            @ fetch entry and return it
+            #index          [ #root:directives ] [ #scope:self:directive ]
+            #return         [ #last:1 ]
+        ]
+
+        range_constant [ [ #single self ]
+
+            @ pass from and make sure its an integer
+            #if             [ #data #present ] [ #scope:self ] [ #data from ]
+            #pass           [ #scope:self:from ]
+            #if             [ #data #not_integer ] [ #last ]
+            #call           [ #method:type ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected integer; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:from ]
+            #print_line     [ #data "" ]
+            #error          [ #data "ranges may only have integer indices" ]
+            #end            [ #data #always ]
+            #overwrite      [ #scope:self ] [ #data from ] [ #last ]
+            #modify         [ #data #scope:self ] [ #last ]
+            #end            [ #data #always ]
+
+            @ pass to and make sure its an integer
+            #if             [ #data #present ] [ #scope:self ] [ #data to ]
+            #pass           [ #scope:self:to ]
+            #if             [ #data #not_integer ] [ #last ]
+            #call           [ #method:type ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected integer; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:to ]
+            #print_line     [ #data "" ]
+            #error          [ #data "ranges may only have integer indices" ]
+            #end            [ #data #always ]
+            #overwrite      [ #scope:self ] [ #data to ] [ #last ]
+            #modify         [ #data #scope:self ] [ #last ]
+            #end            [ #data #always ]
+
+            @ pass offset and make sure its an integer
+            #if             [ #data #present ] [ #scope:self ] [ #data offset ]
+            #pass           [ #scope:self:offset ]
+            #if             [ #data #not_integer ] [ #last ]
+            #call           [ #method:type ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected integer; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:offset ]
+            #print_line     [ #data "" ]
+            #error          [ #data "ranges may only have integer offset" ]
+            #end            [ #data #always ]
+            #overwrite      [ #scope:self ] [ #data offset ] [ #last ]
+            #modify         [ #data #scope:self ] [ #last ]
+            #end            [ #data #always ]
+            #return         [ #scope:self ]
+        ]
+
+        concatinate [ [ #single self ]
+
+            @ create empty string and iterate the parts
+            #set            [ #data string ] [ #data "" ]
+            #iterate        [ #scope:self:concatinate ]
+            #set            [ #data iterator ] [ #last ]
+            #pass           [ #scope:iterator:instance:part ]
+
+            @ make sure that the part is not a range
+            #if             [ #data #map ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected constant; found range" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:iterator:instance:position:part ]
+            #print_line     [ #data "" ]
+            #error          [ #data "concatinate may not operate on ranges" ]
+            #end            [ #data #always ]
+
+            @ append the part to the string
+            #string         [ #scope:string ] [ #last ]
+            #set            [ #data string ] [ #last ]
+            #end            [ #data #always ]
+            #return         [ #scope:string ]
+        ]
+
+        constant [ [ #single self ]
+
+            @ integer
+            #if             [ #data #present ] [ #scope:self ] [ #data integer ]
+            #return         [ #scope:self:integer ]
+
+            @ string
+            #else           [ #data #present ] [ #scope:self ] [ #data string ]
+            #return         [ #scope:self:string ]
+
+            @ float
+            #else           [ #data #present ] [ #scope:self ] [ #data float ]
+            #return         [ #scope:self:float ]
+
+            @ character
+            #else           [ #data #present ] [ #scope:self ] [ #data character ]
+            #return         [ #scope:self:character ]
+
+            @ boolean
+            #else           [ #data #present ] [ #scope:self ] [ #data boolean ]
+            #return         [ #scope:self:boolean ]
+
+            @ negative number
+            #else           [ #data #present ] [ #scope:self ] [ #data negative ]
+            #pass           [ #scope:self:negative ]
+            #if             [ #data #not_number ] [ #last ]
+            #call           [ #method:type ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected number; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:negative ]
+            #print_line     [ #data "" ]
+            #error          [ #data "only numbers may be negated" ]
+            #end            [ #data #always ]
+            #negate         [ #last ]
+            #return         [ #last ]
+
+            @ inverted number or boolean
+            #else           [ #data #present ] [ #scope:self ] [ #data inverted ]
+            #pass           [ #scope:self:inverted ]
+            #if             [ #data #not_number ] [ #last ]
+            #if             [ #data #not_boolean ] [ #last ]
+            #call           [ #method:type ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected number or boolean; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:inverted ]
+            #print_line     [ #data "" ]
+            #error          [ #data "only numbers and booleans may be inverted" ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+            #not            [ #last ]
+            #return         [ #last ]
+
+            @ macros
+            @...
+
+            @ entries that resolve themselves
+            #else           [ #data #always ]
+            #pass           [ #scope:self:passed ]
+            #return         [ #last ]
+            #end            [ #data #always ]
+        ]
+
+        define [ [ #single self ] [ #single ]
+
+            @ make sure directive has no previous value
+            #if             [ #data #present ] [ #root:directives ] [ #scope:self:name ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious definition of directive " ] [ #scope:self:name ] [ #root:color:none ]
+            #index          [ #root:directives ] [ #scope:self:name ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last:2 ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #range          [ #scope:self:#position:name ] [ #scope:self:#position:constant ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last ]
+            #print_line     [ #data "" ]
+            #error          [ #data "directive " ] [ #scope:self:name ] [ #data " may only be defined once" ]
+            #end            [ #data #always ]
+
+            @ resolve value
+            #pass           [ #scope:self:constant ]
+            #set            [ #data constant ] [ #last ]
+
+            @ create new entry and save it to #root:directives
+            #range          [ #scope:self:#position:name ] [ #scope:self:#position:constant ]
+            #list           [ #scope:constant ] [ #last ]
+            #insert         [ #root:directives ] [ #scope:self:name ] [ #last ]
+            #modify         [ #data #root:directives ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+
+        type [ [ #single self ] [ #single ]
+
+            @ make sure type has no previous value
+            #if             [ #data #present ] [ #root:types ] [ #scope:self:name ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious definition of type " ] [ #scope:self:name ] [ #root:color:none ]
+            #index          [ #root:types ] [ #scope:self:name ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last:position ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
+            #print_line     [ #data "" ]
+            #error          [ #data "type " ] [ #scope:self:name ] [ #data " may only be defined once" ]
+            #end            [ #data #always ]
+
+            @ pass width and make sure it is bigger that 1
+            #pass           [ #scope:self:width ]
+            #if             [ #data #not_integer ] [ #last ]
+            #call           [ #method:type ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected integer; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:width ]
+            #print_line     [ #data "" ]
+            #error          [ #data "type width may only be an integer" ]
+            #end            [ #data #always ]
+            #if             [ #data #not_bigger ] [ #last ] [ #data 0 ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected value of 1 or bigger; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:width ]
+            #print_line     [ #data "" ]
+            #error          [ #data "type requires at least one wire" ]
+            #end            [ #data #always ]
+            #set            [ #data width ] [ #last ]
+
+            @ create the lookup table entry
+            #if             [ #data #present ] [ #scope:self ] [ #data export ]
+            #pass           [ #scope:self:export ]
+            #if             [ #data #not_string ] [ #last ]
+            #call           [ #method:type ] [ #last ]
+            #print_line     [ #root:color:red ] [ #data "\nexpected string; found " ] [ #last ] [ #root:color:none ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:export ]
+            #print_line     [ #data "" ]
+            #error          [ #data "exported type name may only be a string" ]
+            #end            [ #data #always ]
+            #else           [ #data #always ]
+            #string         [ #scope:self:name ]
+            #end            [ #data #always ]
+            #map            [ #data export ] [ #last ] [ #data width ] [ #scope:width ] [ #data position ] [ #scope:self:#position:name ]
+
+            @ add type to lookup table
+            #insert         [ #root:types ] [ #scope:self:name ] [ #last ]
+            #modify         [ #data #root:types ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+
+        component [ [ #single self ] [ #single offset ]
+
+            @ make sure component has no previous value
+            #if             [ #data #present ] [ #root:components ] [ #scope:self:name ]
+            #print_line     [ #root:color:red ] [ #data "\nprevious definition of component " ] [ #scope:self:name ] [ #root:color:none ]
+            #index          [ #root:components ] [ #scope:self:name ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last:2 ]
+            #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
+            #range          [ #scope:self:#position:name ] [ #scope:self:#position:name ]
+            #call           [ #method:position:print ] [ #root:color:red ] [ #last ]
+            #print_line     [ #data "" ]
+            #error          [ #data "component " ] [ #scope:self:name ] [ #data " may only be defined once" ]
+            #end            [ #data #always ]
+
+            @ pass statements to resolve constants
+            #if             [ #data #present ] [ #scope:self ] [ #data statements ]
+            #pass           [ #scope:self:statements ]
+            #overwrite      [ #scope:self ] [ #data statements ] [ #last ]
+            #modify         [ #data #scope:self ] [ #last ]
+            #end            [ #data #always ]
+
+            @ create entry and add it to the lookup table
+            #list           [ #scope:offset ] [ #scope:self:#position:name ]
+            #insert         [ #root:components ] [ #scope:self:name ] [ #last ]
+            #modify         [ #data #root:components ] [ #last ]
+            #return         [ #scope:self ]
+        ]
+
+        top [ [ #single self ]
+
+            @ create lookup tables
+            #insert         [ #root ] [ #data directives ] [ #data {} ]
+            #insert         [ #last ] [ #data components ] [ #data {} ]
+            #insert         [ #last ] [ #data types ] [ #data {} ]
+            #modify         [ #data #root ] [ #last ]
+
+            @ if present, register components
+            #if             [ #data #present ] [ #scope:self ] [ #data blocks ]
+            #iterate        [ #scope:self:blocks ]
+            #set            [ #data iterator ] [ #last ]
+            #pass           [ #scope:iterator:instance ] [ #scope:iterator:selector ]
+            #overwrite      [ #scope:self:blocks ] [ #scope:iterator:selector ] [ #last ]
+            #modify         [ #data #scope:self:blocks ] [ #last ]
+            #end            [ #data #always ]
+            #end            [ #data #always ]
+            #return         [ #scope:self ]
+        ]
+    }
+}
