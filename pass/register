@@ -1,4 +1,4 @@
-#method {
+#function {
 
     register {
 
@@ -8,20 +8,20 @@
             #if             [ #data #number ] [ #scope:source:1 ]
             #return         [ #scope:source ]
             #else           [ #data #not_list ] [ #scope:source:1 ]
-            #call           [ #method:type ] [ #scope:source:1 ]
+            #call           [ #function:type ] [ #scope:source:1 ]
             #print_line     [ #root:color:red ] [ #data "\nexpected number or character; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:source:2 ]
             #print_line     [ #data "" ]
             #error          [ #data "equasions may only consist of numbers and characters" ]
             #end            [ #data #always ]
 
             @ get the final left and right values
-            #call           [ #method:register:calculate_total ] [ #scope:source:1 ]
+            #call           [ #function:register:calculate_total ] [ #scope:source:1 ]
             #set            [ #data left ] [ #last ]
-            #call           [ #method:register:calculate_total ] [ #scope:source:3 ]
+            #call           [ #function:register:calculate_total ] [ #scope:source:3 ]
             #set            [ #data right ] [ #last ]
 
-            @ invoke a math method set by the operator
+            @ invoke a math instruction set by the operator
             #range          [ #scope:left:2 ] [ #scope:right:2 ]
             #set            [ #data range ] [ #last ]
             #list           [ #scope:left:1 ] [ #scope:right:1 ]
@@ -41,9 +41,9 @@
 
             @ ensure that source is a boolean
             #if             [ #data #not_boolean ] [ #last ]
-            #call           [ #method:type ] [ #last ]
+            #call           [ #function:type ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected boolean; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:source:2 ]
             #print_line     [ #data "" ]
             #error          [ #data "logical operators may only operate on booleans" ]
             #end            [ #data #always ]
@@ -56,7 +56,7 @@
 
             @ logical or
             #if             [ #data #equals ] [ #scope:source:2 ] [ #data logical_or ]
-            #call           [ #method:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
+            #call           [ #function:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
 
             @ if left is true, skip passing right and return true right away
             #if             [ #data #true ] [ #last:1 ]
@@ -65,7 +65,7 @@
 
             @ otherwise pass right and or them together
             #set            [ #data left ] [ #last ]
-            #call           [ #method:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
+            #call           [ #function:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
             #set            [ #data right ] [ #last ]
             #range          [ #scope:left:2 ] [ #scope:right:2 ]
             #set            [ #data range ] [ #last ]
@@ -75,7 +75,7 @@
 
             @ logical and
             #else           [ #data #equals ] [ #scope:source:2 ] [ #data logical_and ]
-            #call           [ #method:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
+            #call           [ #function:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
 
             @ if left is false, skip passing right and return false right away
             #if             [ #data #false ] [ #last:1 ]
@@ -84,7 +84,7 @@
 
             @ otherwise pass right and and them together
             #set            [ #data left ] [ #last ]
-            #call           [ #method:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
+            #call           [ #function:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
             #set            [ #data right ] [ #last ]
             #range          [ #scope:left:2 ] [ #scope:right:2 ]
             #set            [ #data range ] [ #last ]
@@ -94,9 +94,9 @@
 
             @ logical xor
             #else           [ #data #equals ] [ #scope:source:2 ] [ #data logical_xor ]
-            #call           [ #method:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
+            #call           [ #function:register:calculate_condition ] [ #scope:source:1 ] [ #data !true ]
             #set            [ #data left ] [ #last ]
-            #call           [ #method:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
+            #call           [ #function:register:calculate_condition ] [ #scope:source:3 ] [ #data !true ]
             #set            [ #data right ] [ #last ]
             #range          [ #scope:left:2 ] [ #scope:right:2 ]
             #set            [ #data range ] [ #last ]
@@ -106,20 +106,20 @@
 
             @ resolve left and make sure its not a range
             #else           [ #data #always ]
-            #call           [ #method:register:calculate_condition ] [ #scope:source:1 ] [ #data !false ]
+            #call           [ #function:register:calculate_condition ] [ #scope:source:1 ] [ #data !false ]
             #if             [ #data #map ] [ #last:1 ]
             #print_line     [ #root:color:red ] [ #data "\nexpected constant; found range" ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:1:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:source:1:2 ]
             #print_line     [ #data "" ]
             #error          [ #data "relational operators may not operate on ranges" ]
             #end            [ #data #always ]
             #set            [ #data left ] [ #last ]
 
             @ resolve right and make sure its not a range
-            #call           [ #method:register:calculate_condition ] [ #scope:source:3 ] [ #data !false ]
+            #call           [ #function:register:calculate_condition ] [ #scope:source:3 ] [ #data !false ]
             #if             [ #data #map ] [ #last:1 ]
             #print_line     [ #root:color:red ] [ #data "\nexpected constant; found range" ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:source:3:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:source:3:2 ]
             #print_line     [ #data "" ]
             #error          [ #data "relational operators may not operate on ranges" ]
             #end            [ #data #always ]
@@ -196,15 +196,15 @@
             #end            [ #data #always ]
 
             @ put the operators and values into individual lists so they reolve in the correct order
-            #call           [ #method:register:pull ] [ #scope:combined ] [ #data [ multiply divide remainder ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ add subtract ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ shift_left shift_right ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ and ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ xor ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ or ] ]
+            #call           [ #function:register:pull ] [ #scope:combined ] [ #data [ multiply divide remainder ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ add subtract ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ shift_left shift_right ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ and ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ xor ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ or ] ]
 
             @ resolve the equasion
-            #call           [ #method:register:calculate_total ] [ #last ]
+            #call           [ #function:register:calculate_total ] [ #last ]
             #return         [ #last:1 ]
         ]
 
@@ -224,14 +224,14 @@
             #end            [ #data #always ]
 
             @ put the operators and values into individual lists so they reolve in the correct order
-            #call           [ #method:register:pull ] [ #scope:combined ] [ #data [ bigger smaller not_smaller not_bigger ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ equals not_equals ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ logical_and ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ logical_xor ] ]
-            #call           [ #method:register:pull ] [ #last ] [ #data [ logical_or ] ]
+            #call           [ #function:register:pull ] [ #scope:combined ] [ #data [ bigger smaller not_smaller not_bigger ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ equals not_equals ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ logical_and ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ logical_xor ] ]
+            #call           [ #function:register:pull ] [ #last ] [ #data [ logical_or ] ]
 
             @ resolve the equasion
-            #call           [ #method:register:calculate_condition ] [ #last ] [ #data !false ]
+            #call           [ #function:register:calculate_condition ] [ #last ] [ #data !false ]
             #return         [ #last:1 ]
         ]
 
@@ -241,9 +241,9 @@
             #pass           [ #scope:self:condition ]
             #set            [ #data condition ] [ #last ]
             #if             [ #data #not_boolean ] [ #scope:condition ]
-            #call           [ #method:type ] [ #scope:condition ]
+            #call           [ #function:type ] [ #scope:condition ]
             #print_line     [ #root:color:red ] [ #data "\nexpected boolean; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:condition ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:condition ]
             #print_line     [ #data "" ]
             #error          [ #data "only booleand may be used for conditionals" ]
             #end            [ #data #always ]
@@ -265,7 +265,7 @@
             @ make sure directive exists
             #if             [ #data #not_present ] [ #root:directives ] [ #scope:self:directive ]
             #print_line     [ #root:color:red ] [ #data "\ninvalid directive " ] [ #scope:self:directive ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:directive ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:directive ]
             #print_line     [ #data "" ]
             #error          [ #data "directive must be defined prior to using it" ]
             #end            [ #data #always ]
@@ -281,9 +281,9 @@
             #if             [ #data #present ] [ #scope:self ] [ #data from ]
             #pass           [ #scope:self:from ]
             #if             [ #data #not_integer ] [ #last ]
-            #call           [ #method:type ] [ #last ]
+            #call           [ #function:type ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected integer; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:from ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:from ]
             #print_line     [ #data "" ]
             #error          [ #data "ranges may only have integer indices" ]
             #end            [ #data #always ]
@@ -295,9 +295,9 @@
             #if             [ #data #present ] [ #scope:self ] [ #data to ]
             #pass           [ #scope:self:to ]
             #if             [ #data #not_integer ] [ #last ]
-            #call           [ #method:type ] [ #last ]
+            #call           [ #function:type ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected integer; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:to ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:to ]
             #print_line     [ #data "" ]
             #error          [ #data "ranges may only have integer indices" ]
             #end            [ #data #always ]
@@ -309,9 +309,9 @@
             #if             [ #data #present ] [ #scope:self ] [ #data offset ]
             #pass           [ #scope:self:offset ]
             #if             [ #data #not_integer ] [ #last ]
-            #call           [ #method:type ] [ #last ]
+            #call           [ #function:type ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected integer; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:offset ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:offset ]
             #print_line     [ #data "" ]
             #error          [ #data "ranges may only have integer offset" ]
             #end            [ #data #always ]
@@ -332,7 +332,7 @@
             @ make sure that the part is not a range
             #if             [ #data #map ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected constant; found range" ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:iterator:instance:position:part ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:iterator:instance:position:part ]
             #print_line     [ #data "" ]
             #error          [ #data "concatinate may not operate on ranges" ]
             #end            [ #data #always ]
@@ -370,9 +370,9 @@
             #else           [ #data #present ] [ #scope:self ] [ #data negative ]
             #pass           [ #scope:self:negative ]
             #if             [ #data #not_number ] [ #last ]
-            #call           [ #method:type ] [ #last ]
+            #call           [ #function:type ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected number; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:negative ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:negative ]
             #print_line     [ #data "" ]
             #error          [ #data "only numbers may be negated" ]
             #end            [ #data #always ]
@@ -384,9 +384,9 @@
             #pass           [ #scope:self:inverted ]
             #if             [ #data #not_number ] [ #last ]
             #if             [ #data #not_boolean ] [ #last ]
-            #call           [ #method:type ] [ #last ]
+            #call           [ #function:type ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected number or boolean; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:inverted ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:inverted ]
             #print_line     [ #data "" ]
             #error          [ #data "only numbers and booleans may be inverted" ]
             #end            [ #data #always ]
@@ -410,10 +410,10 @@
             #if             [ #data #present ] [ #root:directives ] [ #scope:self:name ]
             #print_line     [ #root:color:red ] [ #data "\nprevious definition of directive " ] [ #scope:self:name ] [ #root:color:none ]
             #index          [ #root:directives ] [ #scope:self:name ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #last:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last:2 ]
             #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
             #range          [ #scope:self:#position:name ] [ #scope:self:#position:constant ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #last ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last ]
             #print_line     [ #data "" ]
             #error          [ #data "directive " ] [ #scope:self:name ] [ #data " may only be defined once" ]
             #end            [ #data #always ]
@@ -436,9 +436,9 @@
             #if             [ #data #present ] [ #root:types ] [ #scope:self:name ]
             #print_line     [ #root:color:red ] [ #data "\nprevious definition of type " ] [ #scope:self:name ] [ #root:color:none ]
             #index          [ #root:types ] [ #scope:self:name ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #last:position ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last:position ]
             #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:name ]
             #print_line     [ #data "" ]
             #error          [ #data "type " ] [ #scope:self:name ] [ #data " may only be defined once" ]
             #end            [ #data #always ]
@@ -446,15 +446,15 @@
             @ pass width and make sure it is bigger that 1
             #pass           [ #scope:self:width ]
             #if             [ #data #not_integer ] [ #last ]
-            #call           [ #method:type ] [ #last ]
+            #call           [ #function:type ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected integer; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:width ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:width ]
             #print_line     [ #data "" ]
             #error          [ #data "type width may only be an integer" ]
             #end            [ #data #always ]
             #if             [ #data #not_bigger ] [ #last ] [ #data 0 ]
             #print_line     [ #root:color:red ] [ #data "\nexpected value of 1 or bigger; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:width ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:width ]
             #print_line     [ #data "" ]
             #error          [ #data "type requires at least one wire" ]
             #end            [ #data #always ]
@@ -464,9 +464,9 @@
             #if             [ #data #present ] [ #scope:self ] [ #data export ]
             #pass           [ #scope:self:export ]
             #if             [ #data #not_string ] [ #last ]
-            #call           [ #method:type ] [ #last ]
+            #call           [ #function:type ] [ #last ]
             #print_line     [ #root:color:red ] [ #data "\nexpected string; found " ] [ #last ] [ #root:color:none ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #scope:self:#position:export ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:self:#position:export ]
             #print_line     [ #data "" ]
             #error          [ #data "exported type name may only be a string" ]
             #end            [ #data #always ]
@@ -487,10 +487,10 @@
             #if             [ #data #present ] [ #root:components ] [ #scope:self:name ]
             #print_line     [ #root:color:red ] [ #data "\nprevious definition of component " ] [ #scope:self:name ] [ #root:color:none ]
             #index          [ #root:components ] [ #scope:self:name ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #last:2 ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last:2 ]
             #print_line     [ #root:color:red ] [ #data "\nredefined here" ] [ #root:color:none ]
             #range          [ #scope:self:#position:name ] [ #scope:self:#position:name ]
-            #call           [ #method:position:print ] [ #root:color:red ] [ #last ]
+            #call           [ #function:position:print ] [ #root:color:red ] [ #last ]
             #print_line     [ #data "" ]
             #error          [ #data "component " ] [ #scope:self:name ] [ #data " may only be defined once" ]
             #end            [ #data #always ]

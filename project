@@ -18,7 +18,7 @@ directory {
     pass            "/home/code/jts3/pass/"
 }
 
-#method {
+#function {
 
     process_arguments [ [ #single arguments ]
 
@@ -84,7 +84,7 @@ directory {
         #set            [ #data start_time ] [ #last ]
 
         @ process command line arguments
-        #call           [ #method:process_arguments ] [ #scope:arguments ]
+        #call           [ #function:process_arguments ] [ #scope:arguments ]
         #set            [ #data configuration ] [ #last ]
 
         @ load necessary libraries
@@ -139,34 +139,34 @@ directory {
 
         @ output debug information if enabled
         #if             [ #data #true ] [ #scope:configuration:debug ]
-        #call           [ #method:output_debug ] [ #scope:module ]
+        #call           [ #function:output_debug ] [ #scope:module ]
         #end            [ #data #always ]
 
         @ print compilation time
         #time
         #subtract       [ #last ] [ #scope:start_time ]
         #divide         [ #last ] [ #data 1000.0 ]
-        #call           [ #method:print:success ] [ #data "completed in " ] [ #last ] [ #data "s"]
+        #call           [ #function:print:success ] [ #data "completed in " ] [ #last ] [ #data "s"]
     ]
 
     output_debug [ [ #single module ]
 
         @ resource information
-        #call           [ #method:format:serialize ] [ #scope:module:compiler:wires ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:module:compiler:wires ] [ #data "" ]
         #print_line     [ #data "compiler:wires " ] [ #last ]
-        #call           [ #method:format:serialize ] [ #scope:module:compiler:registers ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:module:compiler:registers ] [ #data "" ]
         #print_line     [ #data "compiler:registers " ] [ #last ]
-        #call           [ #method:format:serialize ] [ #scope:module:compiler:gates ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:module:compiler:gates ] [ #data "" ]
         #print_line     [ #data "compiler:gates " ] [ #last ]
 
         @ user defined information
-        #call           [ #method:format:serialize ] [ #scope:module:compiler:types ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:module:compiler:types ] [ #data "" ]
         #print_line     [ #data "compiler:types " ] [ #last ]
-        #call           [ #method:format:serialize ] [ #scope:module:compiler:directives ] [ #data "" ]
+        #call           [ #function:format:serialize ] [ #scope:module:compiler:directives ] [ #data "" ]
         #print_line     [ #data "compiler:directives " ] [ #last ]
 
         @ entire compiler
-        #call           [ #method:format:level ] [ #scope:module:compiler ] [ #data 80 ]
+        #call           [ #function:format:level ] [ #scope:module:compiler ] [ #data 80 ]
         #print_line     [ #data "compiler " ] [ #last ]
     ]
 }

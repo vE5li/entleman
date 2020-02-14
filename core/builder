@@ -1,7 +1,7 @@
-#method {
+#function {
 
     #note [ [ #single modules ] [ #single flag [ identifier ] ] [ #single message [ string ] ]
-        #call           [ #method:format:tag ] [ #root:color:yellow ] [ #scope:flag ]
+        #call           [ #function:format:tag ] [ #root:color:yellow ] [ #scope:flag ]
         #string         [ #last ] [ #data " " ] [ #scope:message ]
         #return         [ #last ]
     ]
