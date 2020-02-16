@@ -13,9 +13,9 @@ project {
 }
 
 directory {
-    library         "/home/code/qtc8/library/"
-    core            "/home/code/jts3/core/"
-    pass            "/home/code/jts3/passes/"
+    library         "/usr/share/seamonkey/qtc8/library/"
+    core            "/usr/share/seamonkey/jts3/core/"
+    pass            "/usr/share/seamonkey/jts3/passes/"
 }
 
 #function {
