@@ -23,7 +23,7 @@ directory {
     process_arguments [ [ #single arguments ]
 
         @ create configuration and index
-        #set            [ #data configuration ] [ #data { files [] debug !false symbols !false cache none output "output.prg" } ]
+        #set            [ #data configuration ] [ #data { files [] debug !false symbols !false output "output.prg" } ]
         #length         [ #scope:arguments ]
         #set            [ #data count ] [ #last ]
         #set            [ #data index ] [ #data 1 ]
@@ -33,7 +33,7 @@ directory {
         #index          [ #scope:arguments ] [ #scope:index ]
 
         @ set output file
-        #else           [ #data #equals ] [ #last ] [ #data "-o" ]
+        #if             [ #data #equals ] [ #last ] [ #data "-o" ]
         #ensure         [ #data #bigger ] [ #scope:count ] [ #scope:index ] [ #data "expected output file" ]
         #ensure         [ #data #not_present ] [ #scope ] [ #data output_set ] [ #data "output file may only be spceified once" ]
         #set            [ #data output_set ] [ #data !true ]
@@ -58,22 +58,22 @@ directory {
         #set            [ #data configuration ] [ #last ]
 
         @ add source file
-        #else           [ #data #always ]
+        #else
         #set            [ #data file ] [ #last ]
         #index          [ #scope:file ] [ #data 1 ]
         #if             [ #data #equals ] [ #last ] [ #data '-' ]
         #error          [ #data "invalid flag " ] [ #scope:file ]
-        #end            [ #data #always ]
+        #end
         #insert         [ #scope:configuration:files ] [ #data -1 ] [ #scope:file ]
         #modify         [ #data #scope:configuration:files ] [ #last ]
-        #end            [ #data #always ]
+        #end
 
         @ increment argument index
         #add            [ #scope:index ] [ #data 1 ]
         #set            [ #data index ] [ #last ]
 
         @ return configuration
-        #end            [ #data #always ]
+        #end
         #return         [ #scope:configuration ]
     ]
 
@@ -93,7 +93,15 @@ directory {
         #read_map       [ #last ]
         #merge          [ #root ] [ #last ]
         #modify         [ #data #root ] [ #last ]
-        #end            [ #data #always ]
+        #end
+
+        @ ensure that there are files to be compiled
+        #ensure         [ #data #not_empty ] [ #scope:configuration:files ] [ #data "no files for compilation provided" ]
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:print:debug ] [ #data "libraries loaded" ]
+        #end
 
         @ load the compiler core
         #map            [ #data #pipeline ] [ #root:pipeline ]
@@ -103,7 +111,7 @@ directory {
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
         #set            [ #data compiler ] [ #last ]
-        #end            [ #data #always ]
+        #end
 
         @ load compiler libraries
         #iterate        [ #root:internal ]
@@ -111,7 +119,7 @@ directory {
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
         #set            [ #data compiler ] [ #last ]
-        #end            [ #data #always ]
+        #end
 
         @ load the passes that are going to be used
         #iterate        [ #root:pipeline ]
@@ -119,18 +127,18 @@ directory {
         #read_map       [ #last ]
         #merge          [ #scope:compiler ] [ #last ]
         #set            [ #data compiler ] [ #last ]
-        #end            [ #data #always ]
+        #end
 
         @ combine all the source files into one string
         #if             [ #data #empty ] [ #scope:configuration:files ]
         #error          [ #data "no files for compilation provided" ]
-        #end            [ #data #always ]
+        #end
         #set            [ #data source ] [ #data "" ]
         #iterate        [ #scope:configuration:files ]
         #read_file      [ #last:instance ]
         #merge          [ #scope:source ] [ #last ]
         #set            [ #data source ] [ #last ]
-        #end            [ #data #always ]
+        #end
 
         @ load the module index, compile the string and write the result to the output file
         #compile        [ #scope:compiler ] [ #scope:source ]
@@ -140,7 +148,7 @@ directory {
         @ output debug information if enabled
         #if             [ #data #true ] [ #scope:configuration:debug ]
         #call           [ #function:output_debug ] [ #scope:module ]
-        #end            [ #data #always ]
+        #end
 
         @ print compilation time
         #time
