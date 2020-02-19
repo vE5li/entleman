@@ -112,7 +112,7 @@
 
                 @ wire collection
                 #else           [ #data #always ]
-                    #set            [ #data collected ] [ #data [] ]
+                    #set            [ #data collected ] [ #data [ ] ]
                     #iterate        [ #scope:input ]
                         #set            [ #data iterator ] [ #last:instance ]
                         #list           [ #data not ] [ #scope:iterator ]
@@ -161,7 +161,7 @@
 
             @ if its a list of logic gates, collect the wires and operators into a single list
             #if             [ #data #bigger ] [ #scope:entry:wires ] [ #data 1 ]
-            #set            [ #data combined ] [ #data [] ]
+            #set            [ #data combined ] [ #data [ ] ]
             #iterate        [ #scope:entry:wires ]
             #set            [ #data iterator ] [ #last ]
             #call           [ #function:resolve:resolve_wires ] [ #scope:iterator:instance:part ] [ #scope:lookup ] [ #data none ]
@@ -227,7 +227,7 @@
             @ wire range input
             #else           [ #data #always ]
                 @ ENSURE RIGHT IS ALSO A SEQUENCE WITH THE SAME WIDTH
-                #set            [ #data collected ] [ #data [] ]
+                #set            [ #data collected ] [ #data [ ] ]
                 #iterate        [ #scope:left:1 ]
                     #set            [ #data iterator ] [ #last ]
                     #index          [ #scope:right:1 ] [ #scope:iterator:selector ]
@@ -256,7 +256,7 @@
             #set            [ #data entry ] [ #last:part:data ]
 
             @ create lookup table
-            #set            [ #data lookup ] [ #data {} ]
+            #set            [ #data lookup ] [ #data { } ]
             @<insert inputs to the table>
 
             @ process statements
@@ -273,7 +273,7 @@
             #set            [ #data component ] [ #last:instance:part:component ]
 
             @ resolve and collect parameters
-            #set            [ #data parameters ] [ #data [] ]
+            #set            [ #data parameters ] [ #data [ ] ]
             #iterate        [ #scope:component:parameters ]
             #call           [ #function:resolve:resolve_gated ] [ #last:instance:part ] [ #scope:lookup ]
             #insert         [ #scope:parameters ] [ #data -1 ] [ #last ]
@@ -321,7 +321,7 @@
                 #set            [ #data current ] [ #last ]
                 #remove         [ #scope:ranges ] [ #data -1 ]
                 #set            [ #data ranges ] [ #last ]
-                #set            [ #data bundle ] [ #data [] ]
+                #set            [ #data bundle ] [ #data [ ] ]
 
                 #if             [ #data #true ] [ #scope:current:positive ]
                     #ensure         [ #data #equals ] [ #scope:current:to ] [ #data 1 ] [ #data "wire range may only start at zero" ]
@@ -362,7 +362,7 @@
                 #set            [ #data current ] [ #last ]
                 #remove         [ #scope:ranges ] [ #data -1 ]
                 #set            [ #data ranges ] [ #last ]
-                #set            [ #data bundle ] [ #data [] ]
+                #set            [ #data bundle ] [ #data [ ] ]
 
                 #if             [ #data #true ] [ #scope:current:positive ]
                     #ensure         [ #data #equals ] [ #scope:current:to ] [ #data 1 ] [ #data "register range may only start at zero" ]
@@ -437,7 +437,7 @@
 
             @ follow set of wires
             #else           [ #data #always ]
-            #set            [ #data registers ] [ #data [] ]
+            #set            [ #data registers ] [ #data [ ] ]
             #iterate        [ #scope:wires ]
             #call           [ #function:resolve:follow_register ] [ #last:instance ]
             #insert         [ #scope:registers ] [ #data 1 ] [ #last ]
@@ -508,7 +508,7 @@
             @ collection wire type
             #else           [ #data #always ]
             #set            [ #data width ] [ #last:width ]
-            #set            [ #data bundle ] [ #data [] ]
+            #set            [ #data bundle ] [ #data [ ] ]
             #for            [ #data 1 ] [ #scope:width ]
             #call           [ #function:resolve:instanciate_wires ] [ #scope:statement:ranges ]
             #insert         [ #scope:bundle ] [ #data -1 ] [ #last ]
@@ -539,9 +539,9 @@
         top [ [ #single self ]
 
             @ create lookup tables
-            #insert         [ #root ] [ #data wires ] [ #data [] ]
-            #insert         [ #last ] [ #data gates ] [ #data [] ]
-            #insert         [ #last ] [ #data registers ] [ #data [] ]
+            #insert         [ #root ] [ #data wires ] [ #data [ ] ]
+            #insert         [ #last ] [ #data gates ] [ #data [ ] ]
+            #insert         [ #last ] [ #data registers ] [ #data [ ] ]
             #modify         [ #data #root ] [ #last ]
 
             @ instanciate wires, gates and registers

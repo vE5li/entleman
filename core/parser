@@ -105,18 +105,18 @@
 
     internal_resource [
         [ [ #type_identifier type ] [ #identifier name ] [ #list ranges [ #template [ range ] ] ] [ #operator [ assign ] ] [ #template constant [ constant    ] ] ]
-        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges []                      ] [ #operator [ assign ] ] [ #template constant [ constant    ] ] ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges [ ]                     ] [ #operator [ assign ] ] [ #template constant [ constant    ] ] ]
         [ [ #type_identifier type ] [ #identifier name ] [ #list ranges [ #template [ range ] ] ] [ #operator [ assign ] ] [ #template gated    [ gated_wires ] ] ]
-        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges []                      ] [ #operator [ assign ] ] [ #template gated    [ gated_wires ] ] ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges [ ]                     ] [ #operator [ assign ] ] [ #template gated    [ gated_wires ] ] ]
         [ [ #type_identifier type ] [ #identifier name ] [ #list ranges [ #template [ range ] ] ]                                                                 ]
-        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges []                      ]                                                                 ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #data ranges [ ]                     ]                                                                 ]
     ]
 
     internal_component [
         [ [ #type_identifier type ] [ #identifier name ] [ #operator [ open_round ] ] [ #list parameters [ #template [ gated_wires ] ] [ #operator [ comma ] ] ] [ #operator [ close_round ] ] ]
         [ [ #type_identifier type ]                      [ #operator [ open_round ] ] [ #list parameters [ #template [ gated_wires ] ] [ #operator [ comma ] ] ] [ #operator [ close_round ] ] ]
-        [ [ #type_identifier type ] [ #identifier name ] [ #operator [ open_round ] ] [ #data parameters []                                                    ] [ #operator [ close_round ] ] ]
-        [ [ #type_identifier type ]                      [ #operator [ open_round ] ] [ #data parameters []                                                    ] [ #operator [ close_round ] ] ]
+        [ [ #type_identifier type ] [ #identifier name ] [ #operator [ open_round ] ] [ #data parameters [ ]                                                   ] [ #operator [ close_round ] ] ]
+        [ [ #type_identifier type ]                      [ #operator [ open_round ] ] [ #data parameters [ ]                                                   ] [ #operator [ close_round ] ] ]
     ]
 
     assign [

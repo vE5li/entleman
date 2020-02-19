@@ -23,7 +23,7 @@ directory {
     process_arguments [ [ #single arguments ]
 
         @ create configuration and index
-        #set            [ #data configuration ] [ #data { files [] debug !false symbols !false output "output.prg" } ]
+        #set            [ #data configuration ] [ #data { files [ ] debug !false symbols !false output "output.prg" } ]
         #length         [ #scope:arguments ]
         #set            [ #data count ] [ #last ]
         #set            [ #data index ] [ #data 1 ]

@@ -182,7 +182,7 @@
         equasion [ [ #single self ]
 
             @ put all values and operators into a single list
-            #set            [ #data combined ] [ #data [] ]
+            #set            [ #data combined ] [ #data [ ] ]
             #iterate        [ #scope:self:pieces ]
             #set            [ #data iterator ] [ #last ]
             #pass           [ #scope:iterator:instance:part ]
@@ -211,7 +211,7 @@
         logical_equasion [ [ #single self ]
 
             @ put all values and operators into a single list
-            #set            [ #data combined ] [ #data [] ]
+            #set            [ #data combined ] [ #data [ ] ]
             #iterate        [ #scope:self:pieces ]
             #set            [ #data iterator ] [ #last ]
             #list           [ #scope:iterator:instance:part ] [ #scope:iterator:instance:position:part ]
@@ -512,9 +512,9 @@
         top [ [ #single self ]
 
             @ create lookup tables
-            #insert         [ #root ] [ #data directives ] [ #data {} ]
-            #insert         [ #last ] [ #data components ] [ #data {} ]
-            #insert         [ #last ] [ #data types ] [ #data {} ]
+            #insert         [ #root ] [ #data directives ] [ #data { } ]
+            #insert         [ #last ] [ #data components ] [ #data { } ]
+            #insert         [ #last ] [ #data types ] [ #data { } ]
             #modify         [ #data #root ] [ #last ]
 
             @ if present, register components
