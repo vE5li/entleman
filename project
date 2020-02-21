@@ -64,7 +64,7 @@ directory {
         #if             [ #data #equals ] [ #last ] [ #data '-' ]
         #error          [ #data "invalid flag " ] [ #scope:file ]
         #end
-        #insert         [ #scope:configuration:files ] [ #data -1 ] [ #scope:file ]
+        #append         [ #scope:configuration:files ] [ #scope:file ]
         #modify         [ #data #scope:configuration:files ] [ #last ]
         #end
 
