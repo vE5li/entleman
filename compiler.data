@@ -1,0 +1,204 @@
+core            [ tokenizer parser builder ]
+
+dependencies    [ color format file debug ]
+
+internal        [ color format position ]
+
+pipeline        [ @@register resolve@@ generate ]
+
+project {
+    name            "cipher"
+    author          "ve5li"
+    contact         "ve5li@tuta.io"
+}
+
+directory {
+    core            "/usr/share/kami/entleman/core/"
+    pass            "/usr/share/kami/entleman/passes/"
+    utility         "/usr/share/kami/shego/library/"
+}
+
+#function {
+
+    process_arguments [ [ #single arguments ]
+
+        @ create configuration and index
+        #modify         [ #data #scope:configuration ] [ #data { files [ ] debug $false symbols $false output "output.prg" } ]
+        #length         [ #scope:arguments ]
+        #modify         [ #data #scope:count ] [ #last ]
+        #modify         [ #data #scope:index ] [ #data 1 ]
+
+        @ iterate over all arguments and match
+        #while          [ #data #not_bigger ] [ #scope:index ] [ #scope:count ]
+        #index          [ #scope:arguments ] [ #scope:index ]
+
+        @ set output file
+        #if             [ #data #equals ] [ #last ] [ #data "-o" ]
+        #ensure         [ #data #bigger ] [ #scope:count ] [ #scope:index ] [ #data "expected output file" ]
+        #ensure         [ #data #not_present ] [ #scope ] [ #data output_set ] [ #data "output file may only be spceified once" ]
+        #modify         [ #data #scope:output_set ] [ #data $true ]
+        #add            [ #scope:index ] [ #data 1 ]
+        #modify         [ #data #scope:index ] [ #last ]
+        #index          [ #scope:arguments ] [ #scope:index ]
+        #modify         [ #data #scope:configuration:output ] [ #last ]
+
+        @ enable debug
+        #else           [ #data #equals ] [ #last ] [ #data "-d" ]
+        #ensure         [ #data #not_present ] [ #scope ] [ #data debug_set ] [ #data "debug flag may only be set once" ]
+        #modify         [ #data #scope:debug_set ] [ #data $true ]
+        #modify         [ #data #scope:configuration:debug ] [ #data $true ]
+
+        @ dump symbols
+        #else           [ #data #equals ] [ #last ] [ #data "-S" ]
+        #ensure         [ #data #not_present ] [ #scope ] [ #data symbols_set ] [ #data "symbols flag may only be set once" ]
+        #modify         [ #data #scope:symbols_set ] [ #data $true ]
+        #modify         [ #data #scope:configuration:symbols ] [ #data $true ]
+
+        @ add source file
+        #else
+        #if             [ #data #equals ] [ #last:1 ] [ #data '-' ]
+        #error          [ #data "invalid flag " ] [ #last ]
+        #end
+        #ensure         [ #data #not_contains ] [ #scope:configuration:files ] [ #last ] [ #data "file " ] [ #last ] [ #data " may only be passed to the compiler once" ]
+        #append         [ #scope:configuration:files ] [ #last ]
+        #modify         [ #data #scope:configuration:files ] [ #last ]
+        #end
+
+        @ increment argument index
+        #add            [ #scope:index ] [ #data 1 ]
+        #modify         [ #data #scope:index ] [ #last ]
+
+        @ return configuration
+        #end
+        #return         [ #scope:configuration ]
+    ]
+
+    #main [ [ #list arguments ]
+
+        @ get time prior to compiling
+        #time
+        #modify         [ #data #scope:start_time ] [ #last ]
+
+        @ process command line arguments
+        #call           [ #function:process_arguments ] [ #scope:arguments ]
+        #modify         [ #data #scope:configuration ] [ #last ]
+
+        @ load the compiler core
+        #map            [ #data debug ] [ #scope:configuration:debug ]
+        #modify         [ #data #scope:compiler ] [ #last ]
+        #iterate        [ #root:core ]
+        #string         [ #root:directory:core ] [ #last:instance ] [ #data ".data" ]
+        #read_map       [ #last ]
+        #merge          [ #scope:compiler ] [ #last ]
+        #modify         [ #data #scope:compiler ] [ #last ]
+        #end
+
+        @ load necessary libraries
+        #iterate        [ #root:dependencies ]
+        #string         [ #root:directory:utility ] [ #last:instance ] [ #data ".data" ]
+        #read_map       [ #last ]
+        #modify         [ #data #scope:library ] [ #last ]
+        #merge          [ #root ] [ #scope:library ]
+        #modify         [ #data #root ] [ #last ]
+        #merge          [ #scope:compiler ] [ #scope:library ]
+        #modify         [ #data #scope:compiler ] [ #last ]
+        #end
+
+        @ ensure that there are files to be compiled
+        #ensure         [ #data #not_empty ] [ #scope:configuration:files ] [ #data "no files for compilation provided" ]
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:#print:debug ] [ #data "libraries loaded" ]
+        #end
+
+        @ tokenize and parse all source files and combine them
+        #modify         [ #data #scope:top ] [ #data { } ]
+        #iterate        [ #scope:configuration:files ]
+        #compile_file   [ #scope:compiler ] [ #last:instance ]
+        #merge          [ #scope:top ] [ #last ]
+        #modify         [ #data #scope:top ] [ #last ]
+        #end
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:#print:debug ] [ #data "loading the pipeline" ]
+        #end
+
+        @ load the pipeline and the passes that are going to be used
+        #insert         [ #scope:compiler ] [ #data #pipeline ] [ #root:pipeline ]
+        #modify         [ #data #scope:compiler ] [ #last ]
+        #iterate        [ #root:pipeline ]
+        #modify         [ #data #scope:pass ] [ #last:instance ]
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:#format:tag ] [ #root:#color:magenta ] [ #data "pass" ]
+        #call           [ #function:#print:debug ] [ #last ] [ #data " loading " ] [ #scope:pass ]
+        #end
+
+        @ load pass from file
+        #string         [ #root:directory:pass ] [ #scope:pass ] [ #data ".data" ]
+        #read_map       [ #last ]
+        #merge          [ #scope:compiler ] [ #last ]
+        #modify         [ #data #scope:compiler ] [ #last ]
+        #end
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:#print:debug ] [ #data "building top" ]
+        #end
+
+        @ compile parsed files
+        #build          [ #scope:compiler ] [ #scope:top ]
+        #modify         [ #data #scope:build ] [ #last ]
+
+        @ debug message
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:#print:debug ] [ #data "writing code to file " ] [ #root:#color:magenta ] [ #scope:configuration:output ] [ #root:#color:none ]
+        #end
+        #write_file     [ #scope:configuration:output ] [ #scope:build:code ]
+
+        @ calculate the compilation time
+        #time
+        #subtract       [ #last ] [ #scope:start_time ]
+        #divide         [ #last ] [ #data 1000.0 ]
+        #modify         [ #data #scope:duration ] [ #last ]
+
+        @ output debug information if the user input is yes
+        #if             [ #data #true ] [ #scope:configuration:debug ]
+        #call           [ #function:#format:tag ] [ #root:#color:magenta ] [ #data "debug" ]
+        #print          [ #last ] [ #data " print build map? (y, N) " ]
+        #input
+        #if             [ #data #equals ] [ #last ] [ #data "y" ]
+        #call           [ #function:output_debug ] [ #scope:build ]
+        #end
+        #end
+
+        @ print the compilation time
+        #string         [ #scope:duration ]
+        #slice          [ #last ] [ #data 1 ] [ #data 3 ]
+        #call           [ #function:#print:success ] [ #data "completed in " ] [ #last ] [ #data "s"]
+    ]
+
+    output_debug [ [ #single module ]
+
+        @ resource information
+        #call           [ #function:#format:serialize ] [ #scope:module:compiler:wires ] [ #data "" ]
+        #print_line     [ #data "compiler:wires " ] [ #last ]
+        #call           [ #function:#format:serialize ] [ #scope:module:compiler:registers ] [ #data "" ]
+        #print_line     [ #data "compiler:registers " ] [ #last ]
+        #call           [ #function:#format:serialize ] [ #scope:module:compiler:gates ] [ #data "" ]
+        #print_line     [ #data "compiler:gates " ] [ #last ]
+
+        @ user defined information
+        #call           [ #function:#format:serialize ] [ #scope:module:compiler:types ] [ #data "" ]
+        #print_line     [ #data "compiler:types " ] [ #last ]
+        #call           [ #function:#format:serialize ] [ #scope:module:compiler:directives ] [ #data "" ]
+        #print_line     [ #data "compiler:directives " ] [ #last ]
+
+        @ entire compiler
+        #call           [ #function:#format:level ] [ #scope:module:compiler ] [ #data 80 ]
+        #print_line     [ #data "compiler " ] [ #last ]
+    ]
+}

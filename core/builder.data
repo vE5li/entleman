@@ -1,9 +1,8 @@
 #function {
 
-    #note [ [ #single modules ] [ #single flag [ identifier ] ] [ #single message [ string ] ]
-        #call           [ #function:format:tag ] [ #root:color:yellow ] [ #scope:flag ]
-        #string         [ #last ] [ #data " " ] [ #scope:message ]
-        #return         [ #last ]
+    print_pass [ [ #single pass ]
+        #call           [ #function:#format:tag ] [ #root:#color:magenta ] [ #data "pass" ]
+        #call           [ #function:#print:debug ] [ #last ] [ #data " running " ] [ #scope:pass ]
     ]
 
     type [ [ #single instance ]

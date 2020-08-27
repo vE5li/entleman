@@ -1,0 +1,17 @@
+#function {
+
+    generate {
+
+        top [ [ #single self ]
+
+            @ if debug is enabled, print the current pass
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #function:print_pass ] [ #data "generate" ]
+            #end
+
+            @
+            #modify         [ #data #build:code ] [ #data "001010100100010001" ]
+            #return         [ #scope:self ]
+        ]
+    }
+}

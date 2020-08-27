@@ -7,8 +7,8 @@
             @ negative index; make sure that there is an infered length
             #if             [ #data #smaller ] [ #scope:boundary ] [ #data 0 ]
             #if             [ #data #equals ] [ #scope:length ] [ #data none ]
-            #print_line     [ #root:color:red ] [ #data "\nindex can not be infered" ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nindex can not be infered" ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line     [ #data "" ]
             #error          [ #data "indices can only be infered for collections of a set size" ]
             #end            [ #data #always ]
@@ -16,8 +16,8 @@
             @ make sure the negative index is inside the range and calculate the actual index
             #absolute       [ #scope:boundary ]
             #if             [ #data #bigger ] [ #last ] [ #scope:length ]
-            #print_line     [ #root:color:red ] [ #data "\nindex out of bounds; length is " ] [ #scope:length ] [ #data ", found " ] [ #scope:boundary ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nindex out of bounds; length is " ] [ #scope:length ] [ #data ", found " ] [ #scope:boundary ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line     [ #data "" ]
             #error          [ #data "indices may not exeed the length of the collection" ]
             #end            [ #data #always ]
@@ -29,8 +29,8 @@
             #add            [ #scope:boundary ] [ #data 1 ]
             #if             [ #data #integer ] [ #scope:length ]
             #if             [ #data #bigger ] [ #last ] [ #scope:length ]
-            #print_line     [ #root:color:red ] [ #data "\nindex out of bounds; length is " ] [ #scope:length ] [ #data ", found " ] [ #scope:boundary ] [ #root:color:none ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #scope:position ]
+            #print_line     [ #root:#color:red ] [ #data "\nindex out of bounds; length is " ] [ #scope:length ] [ #data ", found " ] [ #scope:boundary ] [ #root:#color:none ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #scope:position ]
             #print_line     [ #data "" ]
             #error          [ #data "indices may not exeed the length of the collection" ]
             #end            [ #data #always ]
@@ -44,9 +44,9 @@
 
             @ resolve from and to
             #call           [ #function:resolve:range_boundary ] [ #scope:range:from ] [ #scope:range:#position:from ] [ #scope:length ]
-            #set            [ #data from ] [ #last ]
+            #modify         [ #data #scope:from ] [ #last ]
             #call           [ #function:resolve:range_boundary ] [ #scope:range:to ] [ #scope:range:#position:to ] [ #scope:length ]
-            #set            [ #data to ] [ #last ]
+            #modify         [ #data #scope:to ] [ #last ]
 
             @ INCLUDE +: AND -: OPERATORS
 
@@ -55,13 +55,13 @@
             #absolute       [ #last ]
             #add            [ #last ] [ #data 1 ]
             #if             [ #data #not_bigger ] [ #last ] [ #data 1 ]
-            #print_line     [ #root:color:red ] [ #data "\ninvalid range with width of " ] [ #last ] [ #root:color:none ]
+            #print_line     [ #root:#color:red ] [ #data "\ninvalid range with width of " ] [ #last ] [ #root:#color:none ]
             #range          [ #scope:range:#position:from ] [ #scope:range:#position:to ]
-            #call           [ #function:position:print ] [ #root:color:red ] [ #last ]
+            #call           [ #function:#position:print ] [ #root:#color:red ] [ #last ]
             #print_line     [ #data "" ]
             #error          [ #data "ranges may only have a width of 2 or bigger" ]
             #end            [ #data #always ]
-            #set            [ #data width ] [ #last ]
+            #modify         [ #data #scope:width ] [ #last ]
 
             @ check if the range is positive and create the range map
             #boolean        [ #data #bigger ] [ #scope:from ] [ #scope:to ]
@@ -96,7 +96,7 @@
             @ <inverted>
             #if             [ #data #present ] [ #scope:entry ] [ #data inverted ]
                 #call           [ #function:resolve:resolve_wires ] [ #scope:entry:inverted ] [ #scope:lookup ] [ #scope:length ]
-                #set            [ #data input ] [ #last ]
+                #modify         [ #data #scope:input ] [ #last ]
 
                 @ single wire
                 #if             [ #data #integer ] [ #scope:input ]
@@ -112,9 +112,9 @@
 
                 @ wire collection
                 #else           [ #data #always ]
-                    #set            [ #data collected ] [ #data [ ] ]
+                    #modify         [ #data #scope:collected ] [ #data [ ] ]
                     #iterate        [ #scope:input ]
-                        #set            [ #data iterator ] [ #last:instance ]
+                        #modify         [ #data #scope:iterator ] [ #last:instance ]
                         #list           [ #data not ] [ #scope:iterator ]
                         #append         [ #root:gates ] [ #last ]
                         #modify         [ #data #root:gates ] [ #last ]
@@ -124,7 +124,7 @@
                         #modify         [ #data #root:wires ] [ #last ]
                         #length         [ #root:wires ]
                         #append         [ #scope:collected ] [ #last ]
-                        #set            [ #data collected ] [ #last ]
+                        #modify         [ #data #scope:collected ] [ #last ]
                     #end            [ #data #always ]
                     #return         [ #scope:collected ]
                 #end            [ #data #always ]
@@ -132,7 +132,7 @@
 
             @ pass original set of wires and ensure it is a set
             #call           [ #function:resolve:resolve_wires ] [ #scope:entry:wires ] [ #scope:lookup ] [ #scope:length ]
-            #set            [ #data list ] [ #last ]
+            #modify         [ #data #scope:list ] [ #last ]
             #ensure         [ #data #list ] [ #scope:list ] [ #data "only collections of wires may be indexed" ]
             #length         [ #scope:list ]
 
@@ -161,16 +161,16 @@
 
             @ if its a list of logic gates, collect the wires and operators into a single list
             #if             [ #data #bigger ] [ #scope:entry:wires ] [ #data 1 ]
-            #set            [ #data combined ] [ #data [ ] ]
+            #modify         [ #data #scope:combined ] [ #data [ ] ]
             #iterate        [ #scope:entry:wires ]
-            #set            [ #data iterator ] [ #last ]
+            #modify         [ #data #scope:iterator ] [ #last ]
             #call           [ #function:resolve:resolve_wires ] [ #scope:iterator:instance:part ] [ #scope:lookup ] [ #data none ]
             #list           [ #last ] [ #scope:iterator:instance:position:part ]
             #append         [ #scope:combined ] [ #last ]
-            #set            [ #data combined ] [ #last ]
+            #modify         [ #data #scope:combined ] [ #last ]
             #if             [ #data #present ] [ #scope:iterator:instance ] [ #data seperator ]
             #append         [ #scope:combined ] [ #scope:iterator:instance:seperator:operator ]
-            #set            [ #data combined ] [ #last ]
+            #modify         [ #data #scope:combined ] [ #last ]
             #end            [ #data #always ]
             #end            [ #data #always ]
 
@@ -203,12 +203,12 @@
 
             @ get the final left and right values
             #call           [ #function:resolve:instanciate_gates ] [ #scope:source:1 ]
-            #set            [ #data left ] [ #last ]
+            #modify         [ #data #scope:left ] [ #last ]
             #call           [ #function:resolve:instanciate_gates ] [ #scope:source:3 ]
-            #set            [ #data right ] [ #last ]
+            #modify         [ #data #scope:right ] [ #last ]
 
             #range          [ #scope:left:2 ] [ #scope:right:2 ]
-            #set            [ #data range ] [ #last ]
+            #modify         [ #data #scope:range ] [ #last ]
 
             @ single wire input
             #if             [ #data #integer ] [ #scope:left:1 ]
@@ -227,9 +227,9 @@
             @ wire range input
             #else           [ #data #always ]
                 @ ENSURE RIGHT IS ALSO A SEQUENCE WITH THE SAME WIDTH
-                #set            [ #data collected ] [ #data [ ] ]
+                #modify         [ #data #scope:collected ] [ #data [ ] ]
                 #iterate        [ #scope:left:1 ]
-                    #set            [ #data iterator ] [ #last ]
+                    #modify         [ #data #scope:iterator ] [ #last ]
                     #index          [ #scope:right:1 ] [ #scope:iterator:selector ]
                     #list           [ #scope:source:2 ] [ #scope:iterator:instance ] [ #last ]
                     #append         [ #root:gates ] [ #last ]
@@ -240,7 +240,7 @@
                     #modify         [ #data #root:wires ] [ #last ]
                     #length         [ #root:wires ]
                     #append         [ #scope:collected ] [ #last ]
-                    #set            [ #data collected ] [ #last ]
+                    #modify         [ #data #scope:collected ] [ #last ]
                 #end            [ #data #always ]
                 #list           [ #scope:collected ] [ #scope:range ]
                 #return         [ #last ]
@@ -253,10 +253,10 @@
             #ensure         [ #data #present ] [ #root:components ] [ #scope:name ] [ #data "missing component " ] [ #scope:name ]
             #index          [ #root:components ] [ #scope:name ]
             #index          [ #scope:blocks ] [ #last:1 ]
-            #set            [ #data entry ] [ #last:part:data ]
+            #modify         [ #data #scope:entry ] [ #last:part:data ]
 
             @ create lookup table
-            #set            [ #data lookup ] [ #data { } ]
+            #modify         [ #data #scope:lookup ] [ #data { } ]
             @<insert inputs to the table>
 
             @ process statements
@@ -266,18 +266,18 @@
             @ instanciate resource statement
             #if             [ #data #present ] [ #last:instance:part ] [ #data resource ]
             #call           [ #function:resolve:instanciate_resource ] [ #last:instance:part:resource ] [ #scope:lookup ]
-            #set            [ #data lookup ] [ #last ]
+            #modify         [ #data #scope:lookup ] [ #last ]
 
             @ instanciate component statement
             #else           [ #data #present ] [ #last:instance:part ] [ #data component ]
-            #set            [ #data component ] [ #last:instance:part:component ]
+            #modify         [ #data #scope:component ] [ #last:instance:part:component ]
 
             @ resolve and collect parameters
-            #set            [ #data parameters ] [ #data [ ] ]
+            #modify         [ #data #scope:parameters ] [ #data [ ] ]
             #iterate        [ #scope:component:parameters ]
             #call           [ #function:resolve:resolve_gated ] [ #last:instance:part ] [ #scope:lookup ]
             #append         [ #scope:parameters ] [ #last ]
-            #set            [ #data parameters ] [ #last ]
+            #modify         [ #data #scope:parameters ] [ #last ]
             #end            [ #data #always ]
 
             @ call instanciate with the resolved parameters and add the component to the lookup table if needed
@@ -285,14 +285,14 @@
             #if             [ #data #present ] [ #scope:component ] [ #data name ]
             #ensure         [ #data #not_present ] [ #scope:lookup ] [ #scope:component:name ] [ #data "field " ] [ #scope:component:name ] [ #data " may only be defined once" ]
             #insert         [ #scope:lookup ] [ #scope:component:name ] [ #last ]
-            #set            [ #data lookup ] [ #last ]
+            #modify         [ #data #scope:lookup ] [ #last ]
             #end            [ #data #always ]
 
             @ assign statement
             #else           [ #data #always ]
-            #set            [ #data assign ] [ #last:instance:part:assign ]
+            #modify         [ #data #scope:assign ] [ #last:instance:part:assign ]
             #call           [ #function:resolve:resolve_wires ] [ #scope:assign:wires ] [ #scope:lookup ] [ #data none ]
-            #set            [ #data wires ] [ #last ]
+            #modify         [ #data #scope:wires ] [ #last ]
             #if             [ #data #present ] [ #scope:assign ] [ #data drivers ]
             #call           [ #function:resolve:resolve_gated ] [ #scope:assign:drivers ] [ #scope:lookup ]
             #call           [ #function:resolve:assign_wires ] [ #scope:wires ] [ #last ]
@@ -318,24 +318,24 @@
             #else           [ #data #always ]
                 #index          [ #scope:ranges ] [ #data -1 ]
                 #call           [ #function:resolve:wrapped_range ] [ #last:part:range ] [ #data none ]
-                #set            [ #data current ] [ #last ]
+                #modify         [ #data #scope:current ] [ #last ]
                 #remove         [ #scope:ranges ] [ #data -1 ]
-                #set            [ #data ranges ] [ #last ]
-                #set            [ #data bundle ] [ #data [ ] ]
+                #modify         [ #data #scope:ranges ] [ #last ]
+                #modify         [ #data #scope:bundle ] [ #data [ ] ]
 
                 #if             [ #data #true ] [ #scope:current:positive ]
                     #ensure         [ #data #equals ] [ #scope:current:to ] [ #data 1 ] [ #data "wire range may only start at zero" ]
                     #for            [ #data 1 ] [ #scope:current:from ]
                         #call           [ #function:resolve:instanciate_wires ] [ #scope:ranges ]
                         #append         [ #scope:bundle ] [ #last ]
-                        #set            [ #data bundle ] [ #last ]
+                        #modify         [ #data #scope:bundle ] [ #last ]
                     #end            [ #data #always ]
                 #else           [ #data #always ]
                     #ensure         [ #data #equals ] [ #scope:current:from ] [ #data 1 ] [ #data "wire range may only start at zero" ]
                     #for            [ #data 1 ] [ #scope:current:to ]
                         #call           [ #function:resolve:instanciate_wires ] [ #scope:ranges ]
                         #push           [ #scope:bundle ] [ #last ]
-                        #set            [ #data bundle ] [ #last ]
+                        #modify         [ #data #scope:bundle ] [ #last ]
                     #end            [ #data #always ]
                 #end            [ #data #always ]
                 #return         [ #scope:bundle ]
@@ -359,24 +359,24 @@
             #else           [ #data #always ]
                 #index          [ #scope:ranges ] [ #data -1 ]
                 #call           [ #function:resolve:wrapped_range ] [ #last:part:range ] [ #data none ]
-                #set            [ #data current ] [ #last ]
+                #modify         [ #data #scope:current ] [ #last ]
                 #remove         [ #scope:ranges ] [ #data -1 ]
-                #set            [ #data ranges ] [ #last ]
-                #set            [ #data bundle ] [ #data [ ] ]
+                #modify         [ #data #scope:ranges ] [ #last ]
+                #modify         [ #data #scope:bundle ] [ #data [ ] ]
 
                 #if             [ #data #true ] [ #scope:current:positive ]
                     #ensure         [ #data #equals ] [ #scope:current:to ] [ #data 1 ] [ #data "register range may only start at zero" ]
                     #for            [ #data 1 ] [ #scope:current:from ]
                         #call           [ #function:resolve:instanciate_registers ] [ #scope:ranges ]
                         #append         [ #scope:bundle ] [ #last ]
-                        #set            [ #data bundle ] [ #last ]
+                        #modify         [ #data #scope:bundle ] [ #last ]
                     #end            [ #data #always ]
                 #else           [ #data #always ]
                     #ensure         [ #data #equals ] [ #scope:current:from ] [ #data 1 ] [ #data "register range may only start at zero" ]
                     #for            [ #data 1 ] [ #scope:current:to ]
                         #call           [ #function:resolve:instanciate_registers ] [ #scope:ranges ]
                         #push           [ #scope:bundle ] [ #last ]
-                        #set            [ #data bundle ] [ #last ]
+                        #modify         [ #data #scope:bundle ] [ #last ]
                     #end            [ #data #always ]
                 #end            [ #data #always ]
                 #return         [ #scope:bundle ]
@@ -403,11 +403,11 @@
             #else           [ #data #always ]
             #ensure         [ #data #list ] [ #scope:drivers ] [ #data "range of wires may not be mapped to a single wire" ]
             #length         [ #scope:wires ]
-            #set            [ #data width ] [ #last ]
+            #modify         [ #data #scope:width ] [ #last ]
             #length         [ #scope:drivers ]
             #ensure         [ #data #equals ] [ #scope:width ] [ #last ] [ #data "ranges of wires may not have differnt widths" ]
             #iterate        [ #scope:wires ]
-            #set            [ #data iterator ] [ #last ]
+            #modify         [ #data #scope:iterator ] [ #last ]
             #index          [ #scope:drivers ] [ #scope:iterator:selector ]
             #call           [ #function:resolve:assign_wires ] [ #scope:iterator:instance ] [ #last ]
             #end            [ #data #always ]
@@ -433,15 +433,15 @@
             #if             [ #data #integer ] [ #scope:wires ]
             #call           [ #function:resolve:follow_register ] [ #scope:wires ]
             #list           [ #last ]
-            #set            [ #data registers ] [ #last ]
+            #modify         [ #data #scope:registers ] [ #last ]
 
             @ follow set of wires
             #else           [ #data #always ]
-            #set            [ #data registers ] [ #data [ ] ]
+            #modify         [ #data #scope:registers ] [ #data [ ] ]
             #iterate        [ #scope:wires ]
             #call           [ #function:resolve:follow_register ] [ #last:instance ]
             #push           [ #scope:registers ] [ #last ]
-            #set            [ #data registers ] [ #last ]
+            #modify         [ #data #scope:registers ] [ #last ]
             #end            [ #data #always ]
             #end            [ #data #always ]
 
@@ -452,7 +452,7 @@
 
             @ iterate registers and set the new entries
             #iterate        [ #scope:registers ]
-            #set            [ #data iterator ] [ #last ]
+            #modify         [ #data #scope:iterator ] [ #last ]
 
             @ make sure register does not already have a value
             #index          [ #root:registers ] [ #scope:iterator:instance ]
@@ -486,14 +486,14 @@
             #ensure         [ #data #not_present ] [ #scope:statement ] [ #data constant ] [ #data "constants may only be assigned to registers" ]
             #pass           [ #scope:statement:ranges ]
             #call           [ #function:resolve:instanciate_wires ] [ #last ]
-            #set            [ #data wires ] [ #last ]
+            #modify         [ #data #scope:wires ] [ #last ]
 
             @ registers
             #else           [ #data #equals ] [ #scope:statement:type ] [ #data Register ]
             #ensure         [ #data #not_present ] [ #scope:statement ] [ #data wires ] [ #data "wires may only be mapped to other wires" ]
             #pass           [ #scope:statement:ranges ]
             #call           [ #function:resolve:instanciate_registers ] [ #last ]
-            #set            [ #data wires ] [ #last ]
+            #modify         [ #data #scope:wires ] [ #last ]
 
             @ custom types
             #else           [ #data #always ]
@@ -507,22 +507,22 @@
 
             @ collection wire type
             #else           [ #data #always ]
-            #set            [ #data width ] [ #last:width ]
-            #set            [ #data bundle ] [ #data [ ] ]
+            #modify         [ #data #scope:width ] [ #last:width ]
+            #modify         [ #data #scope:bundle ] [ #data [ ] ]
             #for            [ #data 1 ] [ #scope:width ]
             #call           [ #function:resolve:instanciate_wires ] [ #scope:statement:ranges ]
             #append         [ #scope:bundle ] [ #last ]
-            #set            [ #data bundle ] [ #last ]
+            #modify         [ #data #scope:bundle ] [ #last ]
             #end            [ #data #always ]
             #remember       [ #scope:bundle ]
             #end            [ #data #always ]
-            #set            [ #data wires ] [ #last ]
+            #modify         [ #data #scope:wires ] [ #last ]
             #end            [ #data #always ]
 
             @ add field to the lookup table
             #ensure         [ #data #not_present ] [ #scope:lookup ] [ #scope:statement:name ] [ #data "field " ] [ #scope:statement:name ] [ #data " may only be defined once" ]
             #insert         [ #scope:lookup ] [ #scope:statement:name ] [ #scope:wires ]
-            #set            [ #data lookup ] [ #last ]
+            #modify         [ #data #scope:lookup ] [ #last ]
 
             @ assign wires if possible
             #if             [ #data #present ] [ #scope:statement ] [ #data gated ]
@@ -537,6 +537,11 @@
         ]
 
         top [ [ #single self ]
+
+            @ if debug is enabled, print the current pass
+            #if             [ #data #true ] [ #root:debug ]
+            #call           [ #function:print_pass ] [ #data "resolve" ]
+            #end
 
             @ create lookup tables
             #insert         [ #root ] [ #data wires ] [ #data [ ] ]
