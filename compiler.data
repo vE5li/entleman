@@ -13,9 +13,9 @@ project {
 }
 
 directory {
-    core            "/usr/share/kami/entleman/core/"
-    pass            "/usr/share/kami/entleman/passes/"
-    utility         "/usr/share/kami/shego/library/"
+    core            "/usr/share/tortoise/entleman/core/"
+    pass            "/usr/share/tortoise/entleman/passes/"
+    utility         "/usr/share/tortoise/shego/library/"
 }
 
 #function {
